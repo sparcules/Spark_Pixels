@@ -79,7 +79,7 @@ modeParams modeStruct[] =
         {  RAINBOW,         "RAINBOW",      0   },
         {  THEATERCHASE,    "THEATERCHASE", 0   },
         {  FROZEN,          "FROZEN",       0   },
-		{  COLLIDE,         "COLLIDE",      0   }
+        {  COLLIDE,         "COLLIDE",      0   }
 };
 
 //Preset speed constants

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+	<ListPreference      
+	    android:key="pixelCore"
+	    android:title="Spark Core Neopixel Driver"
+        android:summary="Select the Spark Core to drive the Neopixels"
+        android:defaultValue="" />
+	
+	<PreferenceScreen
+     	android:key="speedNames"
+     	android:title="Speed Nicknames"
+        android:summary="Rename the preset speed tags">
+
+	    <EditTextPreference
+	        android:key="speedTag1"
+	        android:title="Speed 1"
+	        android:defaultValue="Paint Drying" 
+	        android:summary="Paint Drying"
+	        android:dialogTitle="Rename Speed 1">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag2"
+	        android:title="Speed 2"
+	        android:defaultValue="Turtle" 
+	        android:summary="Turtle"
+	        android:dialogTitle="Rename Speed 2">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag3"
+	        android:title="Speed 3"
+	        android:defaultValue="Segway" 
+	        android:summary="Segway" 
+	        android:dialogTitle="Rename Speed 3">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag4"
+	        android:title="Speed 4"
+	        android:defaultValue="Rabbit" 
+	        android:summary="Rabbit" 
+	        android:dialogTitle="Rename Speed 4">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag5"
+	        android:title="Speed 5"
+	        android:defaultValue="Cheetah" 
+	        android:summary="Cheetah"
+	        android:dialogTitle="Rename Speed 5">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag6"
+	        android:title="Speed 6"
+	        android:defaultValue="Ricky Bobby" 
+	        android:summary="Ricky Bobby"
+	        android:dialogTitle="Rename Speed 6">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag7"
+	        android:title="Speed 7"
+	        android:defaultValue="Jimmy Johns" 
+	        android:summary="Jimmy Johns" 
+	        android:dialogTitle="Rename Speed 7">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag8"
+	        android:title="Speed 8"
+	        android:defaultValue="My Bullet" 
+	        android:summary="My Bullet" 
+	        android:dialogTitle="Rename Speed 8">
+	    </EditTextPreference>
+	    <EditTextPreference
+	        android:key="speedTag9"
+	        android:title="Speed 9"
+	        android:defaultValue="Superman" 
+	        android:summary="Superman" 
+	        android:dialogTitle="Rename Speed 9">
+	    </EditTextPreference>
+	</PreferenceScreen>
+	
+	<CheckBoxPreference 
+	    android:key="showBoxTemp" 
+	    android:title="Show Control Box Temp"
+    	android:defaultValue="false"
+        android:summary="Check if using a temp sensor inside the control box" />
+	
+</PreferenceScreen>

@@ -1,0 +1,194 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tinker_main"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:gravity="center"
+    tools:context=".TinkerActivity" >
+
+    <RelativeLayout
+		android:layout_width="@dimen/content_width"
+	    android:layout_height="wrap_content"
+	    android:layout_centerInParent="true"
+	    android:layout_marginBottom="8dp"
+	    android:layout_marginLeft="8dp"
+	    android:layout_marginRight="8dp"
+	    android:background="@drawable/tinker_core_shadow_temp"
+	    android:paddingBottom="8dp"
+	    android:paddingTop="8dp" >
+	  	
+	  	<LinearLayout
+      	  	android:layout_width="match_parent"
+     	   	android:layout_height="wrap_content"
+     	  	android:orientation="vertical" >
+	        
+	  	    <!-- Seekbar Layouts -->
+	  	    <RelativeLayout
+       	 		android:layout_width="match_parent"
+        		android:layout_height="wrap_content" >
+        
+		        <TextView
+		            android:id="@+id/tv_brightness_title"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_alignParentLeft="true"
+		            android:layout_alignParentTop="true"
+		            android:layout_marginLeft="12dp"
+		            android:layout_marginBottom="8dp"
+		            android:text="Brightness"
+		            android:textColor="@android:color/white"
+		            android:textAppearance="?android:attr/textAppearanceSmall" >
+		        </TextView>
+		        
+		        <TextView
+		            android:id="@+id/tv_brightness_value"
+		            android:layout_toRightOf="@+id/tv_brightness_title"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_marginLeft="65dp"
+		            android:layout_marginBottom="8dp"
+		            android:textColor="@android:color/white"
+		            android:textAppearance="?android:attr/textAppearanceSmall" >
+		        </TextView>
+		        
+		        <SeekBar
+		            android:id="@+id/pixel_brightness"
+		            android:layout_below="@+id/tv_brightness_title"
+		            style="@style/DimmerSeekBar" >
+		        </SeekBar>
+	        
+		          <TextView
+		            android:id="@+id/tv_speed_title"
+		            android:layout_above="@+id/pixel_speed"
+		            android:layout_alignLeft="@+id/pixel_speed"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_marginLeft="10dp"
+		            android:layout_marginBottom="8dp"
+		            android:text="Speed"
+		            android:textColor="@android:color/white"
+		            android:textAppearance="?android:attr/textAppearanceSmall" >
+		        </TextView>
+		         
+		        <TextView
+		            android:id="@+id/tv_speed_value"
+		            android:layout_below="@+id/pixel_brightness"
+		            android:layout_alignParentTop="true"
+		            android:layout_alignParentRight="true"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_marginRight="12dp"
+		            android:layout_marginBottom="8dp"
+		            android:textColor="@android:color/white"
+		            android:textAppearance="?android:attr/textAppearanceSmall" >
+		        </TextView>
+		        
+		         <SeekBar
+		            android:id="@+id/pixel_speed"
+		            android:layout_toRightOf="@+id/pixel_brightness"
+		            android:layout_below="@+id/tv_speed_value"
+		            style="@style/SpeedSeekBar" >
+		        </SeekBar>
+		   	</RelativeLayout>
+
+	  	    <!-- Set Temp Readout -->
+	  	    <LinearLayout
+        		android:layout_width="match_parent"
+       			android:layout_height="wrap_content"
+       			android:layout_marginBottom="10dp"
+       			android:gravity="center_horizontal"
+       			android:orientation="horizontal" >
+		        <TextView
+		            android:id="@+id/tv_temp_title"
+	            	android:layout_width="wrap_content"
+	            	android:layout_height="wrap_content"
+	            	android:layout_marginRight="8dp"
+	            	android:text="Control Box Temp:"
+	            	android:textAppearance="?android:attr/textAppearanceMedium" />
+		  	    <TextView
+	            	android:id="@+id/tv_temp_value"
+	            	android:layout_width="wrap_content"
+	            	android:layout_height="wrap_content"
+	            	android:text="0.0"
+	            	android:textAppearance="?android:attr/textAppearanceMedium" />
+	  	    </LinearLayout>
+	  	    
+	  	    <!-- Current Function Selected-->
+	  	    <LinearLayout
+        		android:layout_width="match_parent"
+       			android:layout_height="wrap_content"
+       			android:layout_marginBottom="10dp"
+       			android:gravity="center_horizontal"
+       			android:orientation="horizontal" >
+		        <TextView
+		            android:id="@+id/tv_mode_title"
+	            	android:layout_width="wrap_content"
+	           	 	android:layout_height="wrap_content"
+	            	android:layout_marginRight="8dp"
+	            	android:text="Current Function:"
+	            	android:textAppearance="?android:attr/textAppearanceMedium" />
+		  	    <TextView
+	            	android:id="@+id/tv_mode_value"
+	            	android:layout_width="wrap_content"
+	            	android:layout_height="wrap_content"
+	            	android:text="none"
+	            	android:textAppearance="?android:attr/textAppearanceMedium" />
+	  	    </LinearLayout>
+	  	    
+	  	    <!-- Function List View Header -->
+	  	    <RelativeLayout
+       	 		android:layout_width="match_parent"
+        		android:layout_height="wrap_content" >
+		  	    <TextView
+		  	        android:id="@+id/header_mode_name"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:layout_alignParentLeft="true"
+			        android:paddingLeft="40dp"
+			        android:text="Modes"
+			        android:textColor="#FFFFFFFF"
+			        android:textAppearance="?android:attr/textAppearanceMedium" />
+		    	<TextView
+		    	    android:id="@+id/header_colors"
+	            	android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:layout_alignParentRight="true"
+			        android:paddingRight="60dp"
+			        android:text="Colors"
+			        android:textColor="#FFFFFFFF"
+	            	android:textAppearance="?android:attr/textAppearanceMedium" />
+	    	</RelativeLayout>
+	    	
+	  	    <!-- Function List View -->
+			<ListView
+				android:id="@+id/mode_list"
+			    android:layout_below="@+id/pixel_speed"
+			    android:layout_height="wrap_content"
+			    android:layout_width="match_parent">
+		    </ListView>
+		</LinearLayout>
+	</RelativeLayout>
+	
+    <ProgressBar
+        android:id="@+id/progress_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+    	android:layout_centerInParent="true"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/tinker_logo"
+        android:layout_width="135dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/tinker_logo_temp" />
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        layout="@layout/tinker_instructions"
+        android:visibility="gone" />
+
+</RelativeLayout>

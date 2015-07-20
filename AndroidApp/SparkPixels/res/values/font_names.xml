@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="gotham_light">fonts/Arial.ttf</string>
+    <string name="gotham_medium">fonts/Arial.ttf</string>
+    <string name="gotham_book">fonts/Arial.ttf</string>
+    <string name="gotham_bold">fonts/Arial.ttf</string>
+    <string name="digital_medium">fonts/digital.ttf</string>
+<!--     <string name="gotham_light">fonts/CharlemagneStd-Bold.otf</string> -->
+<!--     <string name="gotham_medium">fonts/CharlemagneStd-Bold.otf</string> -->
+<!--     <string name="gotham_book">fonts/CharlemagneStd-Bold.otf</string> -->
+<!--     <string name="gotham_bold">fonts/CharlemagneStd-Bold.otf</string> -->
+    
+</resources>

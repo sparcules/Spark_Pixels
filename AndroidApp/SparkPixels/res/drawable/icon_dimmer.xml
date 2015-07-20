@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:shape="rectangle">
+	
+	<!-- Specify a gradient for the background -->
+	<gradient
+	    android:angle="90"
+	    android:startColor ="#FF000000"
+	    android:centerColor="#AA555555"
+	    android:endColor   ="#55FFFFFF"
+	    android:type="linear"  />
+	
+	<!-- Specify a dark blue border --> 
+	<stroke 
+		android:width="1dp"
+		android:color="#000000" />
+	
+	<!-- Specify the margins that all content inside the drawable must adhere to 
+	<padding
+		android:left="5dp"
+		android:right="5dp"
+		android:top="5dp"
+		android:bottom="5dp" /> -->
+	
+	<size 
+      android:width="24dp"
+      android:height="24dp"/>
+	<corners
+	    android:topLeftRadius="6dp"
+	    android:topRightRadius="6dp"
+	    android:bottomLeftRadius="6dp"
+	    android:bottomRightRadius="6dp" />
+</shape>

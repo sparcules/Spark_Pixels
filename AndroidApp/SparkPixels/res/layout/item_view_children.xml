@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fontify="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    tools:context=".TinkerActivity">
+    
+	    <TextView
+	        android:id="@+id/tvTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:paddingLeft="1dp"
+	        android:paddingRight="1dp"
+	        android:text="mode"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+  
+	    <TextView
+            android:id="@+id/tvColor1"
+            android:layout_toLeftOf="@+id/tvColor2"
+            style="@style/FunctionColor"
+        	android:text="1" />
+	    <TextView
+            android:id="@+id/tvColor2"
+            android:layout_toLeftOf="@+id/tvColor3"
+            style="@style/FunctionColor"
+        	android:text="2" />
+	    <TextView
+            android:id="@+id/tvColor3"
+            android:layout_toLeftOf="@+id/tvColor4"
+            style="@style/FunctionColor"
+        	android:text="3" />
+	    <TextView
+            android:id="@+id/tvColor4"
+            android:layout_toLeftOf="@+id/tvColor5"
+            style="@style/FunctionColor"
+        	android:text="4" />
+	    <TextView
+            android:id="@+id/tvColor5"
+            android:layout_toLeftOf="@+id/tvColor6"
+            style="@style/FunctionColor"
+        	android:text="5" />
+	    <TextView
+            android:id="@+id/tvColor6"
+            android:layout_alignParentRight="true"
+            style="@style/FunctionColor"
+        	android:text="6" />
+	    
+  <!-- 
+	    <com.danh32.fontify.TextView
+            android:id="@+id/tvColor1"
+            android:layout_toLeftOf="@+id/tvColor2"
+            style="@style/FunctionColor"
+        	android:text="1" />
+	    
+	    <com.danh32.fontify.TextView
+            android:id="@+id/tvColor2"
+            android:layout_toLeftOf="@+id/tvColor3"
+            style="@style/FunctionColor"
+        	android:text="2" />
+	    
+	    <com.danh32.fontify.TextView
+            android:id="@+id/tvColor3"
+            android:layout_toLeftOf="@+id/tvColor4"
+            style="@style/FunctionColor"
+        	android:text="3" />
+	    
+	    <com.danh32.fontify.TextView
+            android:id="@+id/tvColor4"
+            android:layout_alignParentRight="true"
+            style="@style/FunctionColor"
+        	android:text="4" />
+	 -->
+</merge>

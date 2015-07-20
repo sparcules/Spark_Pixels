@@ -68,18 +68,18 @@ modeParams modeStruct[] =
 {
     /*     modeId       	modeName 		numOfColors
      *     ------------- 	-------------	---- */
-        {  OFF, 			"OFF",     		0   },
-        {  NORMAL, 			"NORMAL",       0   },
-        {  COLORALL, 		"COLORALL",    	1   },
-        {  CHASER, 			"CHASER",      	1   },
-        {  ZONE, 			"ZONE",         4   },
-        {  COLORWIPE, 		"COLORWIPE",    1   },
-        {  CYCLEWIPE, 		"CYCLEWIPE",    0   },
-        {  STROBE, 			"STROBE",       1   },
-        {  RAINBOW, 		"RAINBOW",      0   },
-        {  THEATERCHASE, 	"THEATERCHASE", 0   },
-        {  FROZEN, 			"FROZEN",       0   },
-		{  COLLIDE, 		"COLLIDE",      0   }
+        {  OFF,             "OFF",          0   },
+        {  NORMAL,          "NORMAL",       0   },
+        {  COLORALL,        "COLORALL",     1   },
+        {  CHASER,          "CHASER",       1   },
+        {  ZONE,            "ZONE",         4   },
+        {  COLORWIPE,       "COLORWIPE",    1   },
+        {  CYCLEWIPE,       "CYCLEWIPE",    0   },
+        {  STROBE,          "STROBE",       1   },
+        {  RAINBOW,         "RAINBOW",      0   },
+        {  THEATERCHASE,    "THEATERCHASE", 0   },
+        {  FROZEN,          "FROZEN",       0   },
+		{  COLLIDE,         "COLLIDE",      0   }
 };
 
 //Preset speed constants

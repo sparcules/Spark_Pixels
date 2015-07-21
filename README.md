@@ -21,6 +21,8 @@
 5. Update the ***PIXEL_CNT*** and ***PIXEL_PIN*** (near the top of the code) for your setup.
 6. Flash your Core and enjoy!
 
+**Note**: If you are trying to flash a Photon device and get compile errors, you may need to comment out *Spark.syncTime()* on *line 309*.
+
 
 ## Android App
 The app is based off of the Spark Core App Thermostat: SCAT (https://github.com/RolfHut/ThermosApp) which is heavily based on the official Spark app for android. The source code for that app can be found at https://github.com/spark/android-app. The whole view has been revamped to control the Neopixel brightness, speed and mode. Upon loading the app view, the app aquires these Spark Variables from the Core: brightness, speed and a comma delimited String called modeList. Once aquired, the brightness and speed slider bars are updated per the current Spark Core values. The modeList String is parsed out to populate a list view to display all of the available modes programmed into the Core. The modeList String also holds the number of colors each mode needs to run. Some modes need 1 color to operate, some modes need more, some modes need none. The user will select the desired color from a color picker dialog in the app. 

@@ -1,5 +1,5 @@
 # Spark Pixels
-<img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and Spark Core firmware. You will need an Android phone, a Spark Core, and a strip of Neopixels. The app and Core firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash the Core. The Android app reads in the list of available modes from the Core every time the app is launched. The Android app code should never need to be updated.
+<img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and Spark Core firmware. You will need an Android device, a Spark Core, and a strip of Neopixels. The app and Core firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash the Core. The Android app reads in the list of available modes from the Core every time the app is launched. The Android app code should never need to be updated.
 
 
 ## Usage
@@ -36,10 +36,24 @@ The list view of the modes will not populate unless it gets the modeList cloud v
 
 ## Adding a new Neopixel Mode to the Firmware
 1. Add your new mode function to the firmware code.
-2. Create a name for your new mode and add it to the list under "Mode ID Defines". It's actually of a *const int* type.
+2. Create a name for your new mode and add it to the list under "Mode ID Defines". It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
 3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
-4. Then decide how many colors you want to pass to your new mode. (The Android app will force you to select this many different colors when selecting this mode).
+4. Then decide how many colors you want to pass to your new mode. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
 5. Add the mode name to the case statement in the main loop() and add the function call to it.
+
+## Firmware
+All the mode information is defined in the **modeStruct[]** array. The setup routine takes this info and assembles the mode string info and the number of required colors into the Spark Cloud String Variable **modeList**. The info is assembled comma delimited. i.e. the modeList String would start out like this: *OFF,0,NORMAL,0,COLORALL,1,CHASER,1,ZONE,4, etc*
+Feel free to remove any modes you don't care to have. You can simply comment out the line for the mode in the **modeStruct[]** array.
+
+I have my Neopixels installed under my cabinets. So, I wanted to be able to set each cabinet to a different color. I call this mode ZONE. If you care to use the ZONE mode, you may need to add or subtract the number of colors (1 for each zone) you have setup. The max allowed is 6. You will also need to edit the start and end pixel defines under the *ZONE mode Start and End Pixels* section.
+
+FYI on the CHASER mode, I wanted my chaser path to be a little bit different than the actual wired path of the LEDs. So I added a CHASER_LENGTH define and some extra Start and End defines under the *CHASER mode specific Start and End Pixels* section.
+
+There are 9 preset speeds define by the **speedPresets** int array. The Android app passes an index to this array. Feel free to change these to your liking.
+
+
+## Limitations
+Spark String Variables have a max length of 622 bytes. This will limit the number of modes you can create since the modes get populated into the modeList String variable. Based off the average number of characters I currently have, I estimated a max number of modes to be 69. I really can't imagine I'll ever have 40 or 50 modes. So, I don't see this being an issue. I do try to keep the number of characters in my mode names shorter just to be safe.
 
 
 ## Android App Building

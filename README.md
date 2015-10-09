@@ -2,6 +2,16 @@
 <img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and Spark Core firmware. You will need an Android device, a Spark Core, and a strip of Neopixels. The app and Core firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash the Core. The Android app reads in the list of available modes from the Core every time the app is launched. The Android app code should never need to be updated.
 
 
+## Community
+I created a facebook page for users of the Spark Pixels Android app and Particle firmware to: 
+- Post Pictures and/or Videos of your setup
+- Share new modes that you've created
+- Post any troubleshooting help you may need
+- Suggestions or improvements to the app or firmware
+
+https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
+
+
 ## Usage
 1. Load the sparkPixel firmware on your Core
 2. Install the Android app on your phone from [here](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) or by importing the source code into Eclipse (see Android App Building below).

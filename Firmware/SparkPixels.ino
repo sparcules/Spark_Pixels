@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file     SparkPixels.ino
- *                  Added Demo Mode - Cycles through selected dynamic modes.
+ *                  Added DEMO Mode - Cycles through selected dynamic modes.
  *                  Restructured loop by adding runMode() function to handle
  *                  primary mode launches in the switch statement. This supports 
  *                  the Demo Mode.

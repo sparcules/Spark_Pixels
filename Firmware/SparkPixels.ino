@@ -1,7 +1,20 @@
-/**
+  /**
  ******************************************************************************
+ * @file     SparkPixels.ino:
+ *		New mode: FLICKER
+ *		New setting: Auto Shut Off enable/disable (through cloud function)
+ *		New Functions: demo(), runMode(), setASO() 
+ *      New Feature: Expanded modeStruct[] array to support up to 4 boolean switches
+ *                  and a text input. Obviously text input it only good for Neopixel arrays. 
+ *                  The switches can be used to turn mode options on and off.
+ *                  Added switchTitleStruct[] array to define the switch titles in the app.
+ *                  Added cloud controlled switch1, switch2, switch3, and switch4
+ * @author   Kevin Carlborg
+ * @version  V2.0.0
+ * @date     18-November-2015 ~ 21-December-2015
+ * 
  * @file     SparkPixels.ino
- *                  Added DEMO Mode - Cycles through selected dynamic modes.
+ *                  Added Demo Mode - Cycles through selected dynamic modes.
  *                  Restructured loop by adding runMode() function to handle
  *                  primary mode launches in the switch statement. This supports 
  *                  the Demo Mode.
@@ -46,6 +59,11 @@
 #include "neopixel/neopixel.h"
 #include "math.h"
 
+//Global Defines
+#define MAX_PUBLISHED_STRING_SIZE   622     //defined by Particle Industries
+#define GET_TEMP_ENABLED            FALSE   //Should we measure a temp sensor?
+#define TIME_ZONE_OFFSET	        -6		//The offset to set your region's time correctly
+
 //NEOPIXEL Defines
 #define PIXEL_CNT 268
 #define PIXEL_PIN D7
@@ -55,59 +73,96 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_CNT, PIXEL_PIN, PIXEL_TYPE);
 
 /* ======================= ADD NEW MODE ID HERE. ======================= */
 // Mode ID Defines
-const int OFF           = 0;
-const int NORMAL        = 1;
-const int COLORALL      = 2;
-const int CHASER        = 3;
-const int ZONE          = 4;
-const int COLORWIPE     = 5;
-const int CYCLEWIPE     = 6;
-const int STROBE        = 7;
-const int RAINBOW       = 8;
-const int THEATERCHASE  = 9;
-const int FROZEN        = 10;
-const int COLLIDE       = 11;
-const int DEMO          = 12;
-const int COLORFADE     = 13;
-const int WARMFADE      = 14;
-const int CYCLECHASER   = 15;
-const int COLORCHASE    = 16;
-const int CHRISTMASTREE = 17;
- 
+const int OFF             = 0;
+const int NORMAL          = 1;
+const int COLORALL        = 2;
+const int CHASER          = 3;
+const int ZONE            = 4;
+const int COLORWIPE       = 5;
+const int CYCLEWIPE       = 6;
+const int STROBE          = 7;
+const int RAINBOW         = 8;
+const int THEATERCHASE    = 9;
+const int FROZEN          = 10;
+const int COLLIDE         = 11;
+const int DEMO            = 12;
+const int COLORFADE       = 13;
+const int WARMFADE        = 14;
+const int CYCLECHASER     = 15;
+const int COLORCHASE      = 16;
+const int CHRISTMASTREE   = 17;
+const int CHRISTMASWREATH = 18;
+const int PLANTLIFE       = 19;
+const int FLICKER         = 20;
+
+const int EXAMPLE         = 99;
+
 typedef struct modeParams
 {
    int 	 modeId;
-   char  modeName[64];
+   char  modeName[20];      //Tell the android app what the mode title is
    int   numOfColors;       //Tell the android app home many colors to expect. Max number is 6
+   int   numOfSwitches;     //Tell the android app home many switches to expect. Max number is 4
+   bool  textInput;         //Tell the android app if a text input is needed
 } modeParams;
+
+const int MAX_NUM_COLORS = 6;
+const int MAX_NUM_SWITCHES = 4;
 
 /* ======================= ADD NEW MODE STRUCT HERE. ======================= */
 //modeId and modeName should be the same name to prevent confusion
-//Use this struct array to neatly organize and correlate Mode name with number of colors needed
-//The Android app uses numOfColors to help populate the view 
-//and to know how many colors to ask to update
+//Use this struct array to neatly organize and correlate Mode name with number of colors needed,
+//  the number of switches needed, and whether a text input is needed or not
+//The Android app uses these parameters to help populate the view 
+//and to know how many colors and switches and text input to ask to update
 modeParams modeStruct[] =
+{ 
+    /*     modeId           modeName 	   #Colors #Switches  textInput
+     *     -------------    -------------  ------- ---------  ----- */
+        {  OFF,             "OFF",             0,      0,      FALSE  },
+        {  NORMAL,          "NORMAL",          0,      0,      FALSE  },
+        {  COLORALL,        "COLORALL",        1,      0,      FALSE  },
+        {  CHASER,          "CHASER",          1,      0,      FALSE  },
+        {  ZONE,            "ZONE",            4,      0,      FALSE  },
+        {  COLORWIPE,       "COLORWIPE",       1,      0,      FALSE  },
+        {  CYCLEWIPE,       "CYCLEWIPE",       0,      0,      FALSE  },
+        {  CYCLECHASER,     "CYCLECHASER",     0,      0,      FALSE  },
+        {  COLORCHASE,      "COLORCHASE",      2,      0,      FALSE  },
+        //{  STROBE, 	    "STROBE",          1,      0,      FALSE  }, //removed to prevent seizures
+        {  RAINBOW,         "RAINBOW",         0,      0,      FALSE  },
+        {  THEATERCHASE,    "THEATERCHASE",    0,      0,      FALSE  },
+        {  FROZEN,          "FROZEN",          0,      0,      FALSE  },
+	    {  COLLIDE,         "COLLIDE",         0,      0,      FALSE  },
+	    {  COLORFADE,       "COLORFADE",       0,      0,      FALSE  },
+        {  CHRISTMASTREE,   "CHRISTMASTREE",   0,      0,      FALSE  },
+        {  CHRISTMASWREATH, "CHRISTMASWREATH", 0,      0,      FALSE  },
+	    {  WARMFADE,        "WARMFADE",        0,      0,      FALSE  },
+	    {  PLANTLIFE,       "PLANTLIFE",       0,      0,      FALSE  },
+	    {  FLICKER,         "FLICKER",         0,      0,      FALSE  },
+	   // {  EXAMPLE,         "EXAMPLE",         0,      0,      FALSE  },
+	    {  DEMO,            "DEMO",            0,      0,      FALSE  }
+};
+
+typedef struct switchParams
 {
-    /*     modeId       	modeName 		numOfColors
-     *     ------------- 	-------------	---- */
-        {  OFF,             "OFF",          0   },
-        {  NORMAL,          "NORMAL",       0   },
-        {  COLORALL,        "COLORALL",     1   },
-        {  CHASER,          "CHASER",       1   },
-        {  ZONE,            "ZONE",         4   },
-        {  COLORWIPE,       "COLORWIPE",    1   },
-        {  CYCLEWIPE,       "CYCLEWIPE",    0   },
-        {  CYCLECHASER,     "CYCLECHASER",  0   },
-        {  COLORCHASE,     "COLORCHASE",    2   },
-//        {  STROBE, 			"STROBE",       1   },
-        {  RAINBOW,         "RAINBOW",      0   },
-        {  THEATERCHASE,    "THEATERCHASE", 0   },
-        {  FROZEN,          "FROZEN",       0   },
-		{  COLLIDE,         "COLLIDE",      0   },
-		{  COLORFADE,       "COLORFADE",    0   },
-		{  CHRISTMASTREE,   "CHRISTMASTREE",0   },
-		{  WARMFADE,        "WARMFADE",     0   }, 
-		{  DEMO,            "DEMO",         0   }
+   int 	 modeId;
+   char  switch1Title[20];
+   char  switch2Title[20];
+   char  switch3Title[20];
+   char  switch4Title[20];
+} switchParams;
+
+/* ======================= ADD ANY REQUIRED SWITCH TITLES HERE ======================= */
+// The Android app needs to know what the titles of the switches are
+// The modeID MUST be the same as the modeID used up in the modeStruct[] array
+// i.e. - If you declare a mode to have 3 switches in the modeStruct[] array above,
+//          you should then have 3 titles declared here.
+switchParams switchTitleStruct[] = 
+{ 
+    /*     modeId           S1Title                S2Title                S3Title                S4Title 
+     *     ---------------  ---------------------- ---------------------- ---------------------- ---------------------- */
+	   // {  EXAMPLE,         "Random Colors",     "Matrix Mode",         "",                    ""  },  //Don't forget the comma here for more than one mode
+	   // {  TEST,            "Switch Title 1",      "Switch Title 2",      "Switch Title 3",      "Switch Title 4"  }
 };
 
 //Preset speed constants
@@ -129,6 +184,10 @@ int currentModeID;	//This is the ID of the current mode selected - used in the c
 int run;    	//Use this for modes that don't need to loop. Set the color, then stop sending commands to the pixels
 int stop;   	//Use this to break out of sequence loops when changing to a new mode
 
+/*Should we shut off the lights at certain times? This is toggled from the app
+  Configure the Auto Shut Off times in the loop() function */
+bool autoShutOff;  
+
 //Misc variables
 int speed;	//not to be confused with speedIndex below, this is the local speed (delay) value
 unsigned long previousMillis = 0;
@@ -141,7 +200,13 @@ uint32_t color3;
 uint32_t color4;
 uint32_t color5;
 uint32_t color6;
-#define TIME_ZONE_OFFSET	-5		//The offset to set your region's time correctly
+bool switch1;
+bool switch2;
+bool switch3;
+bool switch4;
+float redPrev;
+float greenPrev;
+float bluePrev;
 
 //Spark Pin Defines
 int FAN_PIN = A0;           //There is a fan in the project box in case it gets too hot in there
@@ -153,8 +218,10 @@ int tHour=0;    //used for general info and setup
 int speedIndex;     				//Let the cloud know what speed preset we are using
 int brightness;                     //How bright do we want these things anyway
 double measuredTemperature = 0.0;   //Let's see how hot our project box is getting since is has the power supply in there
-char modeList[622] = "None";        //Holds all mode info comma delimited. Use this to populate the android app
+char modeNameList[MAX_PUBLISHED_STRING_SIZE] = "None";        //Holds all mode info comma delimited. Use this to populate the android app
+char modeParamList[MAX_PUBLISHED_STRING_SIZE] = "None";
 char currentModeName[64] = "None";  //Holds current selected mode
+char textInputString[64];            //Holds the Text for any mode needing a test input - only useful for a Neopixel Matrix
 char debug[200];                    //We might want some debug text for development
    
 /* ======================= mode Specific Defines ======================= */
@@ -173,6 +240,23 @@ int ChaserZone3Section1End   = 177;
 int chaserZone3Section2Start = 189;
 #define CHASER_LENGTH   256
 
+//Color Defines
+#define RED   0xFF0000
+#define GREEN 0x00FF00
+#define PINK  0xFF00FF
+
+/* ============ SetMode return  Defines  ====================== */
+#define NO_CHANGE           1000
+#define BRIGHTNESS_SET      1001
+#define SPEED_SET           1002
+
+/* ============ AUTO SHUT OFF (ASO) Defines for Cloud Function: Function ====================== */
+#define ASO_CMD_ON        "ASO_ON"
+#define ASO_CMD_OFF       "ASO_OFF"
+#define ASO_CMD_STATUS    "ASO_STATUS"
+#define ASO_STATUS_OFF          2000
+#define ASO_STATUS_ON           2001
+
 //FROZEN mode defines
 int randomFlakes[(int)(PIXEL_CNT*0.1)]; // holds the snowflake positions no more than10% of total number of pixels
 
@@ -183,6 +267,7 @@ int getModeIndexFromID(int id);
 int isValidMode(String newMode);
 int getTemperature(void);
 int showPixels(void);
+void makeModeList(void);
 uint32_t Wheel(byte WheelPos);
 
 /* ======================= Spark Pixel Prototypes =============================== */
@@ -191,7 +276,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4);
 int colorWipe(uint32_t c);
 int colorChaser(uint32_t c);
 int colorChase(uint32_t c1, uint32_t c2);
-void strobe(uint32_t color);
+//void strobe(uint32_t color);
 void rainbow(void);
 void rainbowCycle(void) ;
 void theaterChaseRainbow(void);
@@ -201,27 +286,40 @@ void setRandomSnowFlakes(int numFlakes);
 void findRandomSnowFlakesPositions(int numFlakes);
 void collide(void);
 void demo(void);
+void arrayShuffle(int arrayToShuffle[], int arraySize);
 void fade(void);
 void cycleChaser(void);
 void warmFade(void);
 void christmasTree(void);
+void christmasWreath(void);
+void setZone1(uint32_t c);
+void setZone2(uint32_t c);
+void setZone3(uint32_t c);
+void setZone4(uint32_t c);
 uint8_t fadeSquare(float value);
 uint8_t fadeSqRt(float value);
 uint8_t fadeLinear(float value);
+void flicker(void);
+//int fadeIn(int delay);
+//int fadeOut(int delay);
 
 //Don't connect to the cloud first so we can turn on the lights right away
 SYSTEM_MODE(SEMI_AUTOMATIC);   
 
 void setup() {
-    Particle.function("SetMode", SetMode);
-    Particle.variable("wifi",          &iwifi,                  INT);
-    Particle.variable("tHour",         &tHour,                 INT);
-    Particle.variable("speed",         &speedIndex,            INT);
-    Particle.variable("brightness",    &brightness,            INT);
-    Particle.variable("temp",          &measuredTemperature,   DOUBLE);
-	Particle.variable("modeList",      modeList,               STRING);
-	Particle.variable("mode",          currentModeName,        STRING);
-    Particle.variable("debug",         debug,                  STRING);
+    Particle.function("SetMode",       SetMode);            // Completely Necessary, Do Not Delete
+    Particle.function("SetText",       SetText);            // Completely Necessary, Do Not Delete
+    Particle.function("Function",      Function);           // Completely Necessary, Do Not Delete
+    Particle.variable("hour",          tHour);              // Expendable   
+    Particle.variable("wifi",          iwifi);              //// Expendable
+    Particle.variable("speed",         speedIndex);         // Completely Necessary, Do Not Delete
+    Particle.variable("brightness",    brightness);         // Completely Necessary, Do Not Delete
+    Particle.variable("temp",          measuredTemperature);// Needed if "Show Control Box Temp" is selected in the app
+	Particle.variable("modeList",      modeNameList);       // Completely Necessary, Do Not Delete
+	Particle.variable("modeParmList",  modeParamList);      // Completely Necessary, Do Not Delete
+	Particle.variable("mode",          currentModeName);    // Completely Necessary, Do Not Delete
+	Particle.variable("textInput",     textInputString);    // Expendable
+    Particle.variable("debug",         debug);              // Completely Necessary, Do Not Delete
     
     pinMode(TEMP_SENSOR_PIN,INPUT);
     pinMode(PIXEL_PIN, OUTPUT);
@@ -230,16 +328,14 @@ void setup() {
     analogWrite(FAN_PIN, 0); //Turn Fan off
   
 	//Initialize
-    color1 = 0;
-    color2 = 0;
-    color3 = 0;
-    color4 = 0;
-    color5 = 0;
-    color6 = 0;
+    color1 = color2 = color3 = color4 = color5 = color6 = 0;
+    switch1 = switch2 = switch3 = switch4 = false;
+    redPrev = greenPrev = bluePrev = 0;
     speedIndex = 5;
     brightness = 250;
-    run = FALSE;
-    stop = FALSE;
+    run = false;
+    stop = false;
+    autoShutOff = false;
 	setNewMode(getModeIndexFromID(NORMAL));
 	defaultColor = strip.Color(255,255,60);  // This seems close to incandescent color 
 	lastSync = lastCommandReceived = previousMillis = millis();	//Take a time stamp
@@ -250,16 +346,143 @@ void setup() {
     Time.zone(TIME_ZONE_OFFSET);  //set time zone 
     
     //Clear the mode list variable
-	sprintf(modeList,"");
+	sprintf(modeNameList,"");
+	sprintf(modeParamList,"");
     //Assemble Spark Cloud available modes variable
-    for(uint16_t i=0;i<sizeof modeStruct / sizeof modeStruct[0];i++) {
+    /*for(uint16_t i=0;i<sizeof modeStruct / sizeof modeStruct[0];i++) {
         char cBuff[20];
         sprintf(cBuff,"%s,%i,",modeStruct[i].modeName, modeStruct[i].numOfColors);
-	    strcat(modeList,cBuff);
-    } 
+	    strcat(modeNameList,cBuff);
+    } */
+    makeModeList();
 
+    
 	getTemperature();
     tHour = Time.hour();	//used to check for correct time zone
+    iwifi = WiFi.RSSI(); 
+}
+
+void makeModeList(void) {
+    for(int i=0;i<sizeof modeStruct / sizeof modeStruct[0];i++) {
+        char cNameBuff[20];
+		char cParamBuff[60];
+		//if((sizeof modeStruct[i].modeName)+1 <= modeNameCharCnt) {
+		if(strlen(modeNameList)+strlen(modeStruct[i].modeName)+1 <= MAX_PUBLISHED_STRING_SIZE) {
+            sprintf(cNameBuff,"%s;",modeStruct[i].modeName );
+		    strcat(modeNameList,cNameBuff);
+		}
+		else {
+		    sprintf(debug,"Error: modeNameList has reached max size limit");
+		}
+		
+		if(modeStruct[i].numOfColors==0 && modeStruct[i].numOfSwitches==0 && modeStruct[i].textInput == FALSE) {
+		    if(isThereEnoughRoomInModeParamList(2)) {
+			    strcat(modeParamList,"N;");
+		    } else { return; }
+		}
+		else {
+			if(modeStruct[i].numOfColors > 0) {
+				if(modeStruct[i].numOfColors > MAX_NUM_COLORS) {
+					modeStruct[i].numOfColors = MAX_NUM_COLORS;
+				}
+				if(isThereEnoughRoomInModeParamList(4)) {
+    				sprintf(cParamBuff,"C:%i",modeStruct[i].numOfColors);
+    				strcat(modeParamList,cParamBuff);
+    				if(modeStruct[i].numOfSwitches == 0 && modeStruct[i].textInput == FALSE) {
+    					strcat(modeParamList,";");
+    				}
+    				else{
+    					strcat(modeParamList,",");
+    				}
+				} else { return; }
+			}
+			if(modeStruct[i].numOfSwitches > 0) {
+			    int switchTitleStructIdx = getSwitchTitleStructIndex(modeStruct[i].modeId);
+			    //if(switchTitleStructIdx == -1)
+			    //       break;
+			    if(switchTitleStructIdx != -1) {
+    				if(modeStruct[i].numOfSwitches > MAX_NUM_SWITCHES) {
+    					modeStruct[i].numOfSwitches = MAX_NUM_SWITCHES;
+    				}
+    				if(modeStruct[i].numOfSwitches >= 1) {
+    				    sprintf(cParamBuff,"S:%i,\"%s\"",modeStruct[i].numOfSwitches,switchTitleStruct[switchTitleStructIdx].switch1Title);
+    				    //consider this instead: strncat(modeParamList,cParamBuff,MAX_PUBLISHED_STRING_SIZE-strlen(modeParamList)-1);
+    				    if(isThereEnoughRoomInModeParamList(strlen(cParamBuff)+1)) {
+    					    strcat(modeParamList,cParamBuff);
+    				    } else { return; }    
+    				}
+    				if(modeStruct[i].numOfSwitches >= 2) {
+    					sprintf(cParamBuff,"\"%s\"",switchTitleStruct[switchTitleStructIdx].switch2Title);
+    					if(isThereEnoughRoomInModeParamList(strlen(cParamBuff)+1)) {
+    					    strcat(modeParamList,cParamBuff);
+    					} else { return; }    
+    				}
+    				if(modeStruct[i].numOfSwitches >= 3) {
+    					sprintf(cParamBuff,"\"%s\"",switchTitleStruct[switchTitleStructIdx].switch3Title);
+    					if(isThereEnoughRoomInModeParamList(strlen(cParamBuff)+1)) {
+    					    strcat(modeParamList,cParamBuff);
+    					} else { return; }    
+    				}
+    				if(modeStruct[i].numOfSwitches >= 4) {
+    					sprintf(cParamBuff,"\"%s\"",switchTitleStruct[switchTitleStructIdx].switch4Title);
+    					if(isThereEnoughRoomInModeParamList(strlen(cParamBuff)+1)) {
+    					    strcat(modeParamList,cParamBuff);
+    					} else { return; }    
+    				}
+    			    if(modeStruct[i].textInput == FALSE) {
+    					strcat(modeParamList,";");
+    				}
+    				else{
+    					strcat(modeParamList,",");
+    				}
+			    } else {
+			        sprintf(cParamBuff,"S:E;");
+    			    if(isThereEnoughRoomInModeParamList(strlen(cParamBuff)+1)) {
+    				    strcat(modeParamList,cParamBuff);
+    				} else { return; }    
+			    }
+			}
+			if(modeStruct[i].textInput == TRUE) {
+			    if(isThereEnoughRoomInModeParamList(3)) {
+				    strcat(modeParamList,"T:;");
+			    } else { return; }    
+			}
+		} 
+    }
+}
+
+bool isThereEnoughRoomInModeParamList(int textSize) {
+    if(strlen(modeParamList) + textSize + 1 <= MAX_PUBLISHED_STRING_SIZE) {
+        return true;
+    }
+    int idx = strlen(modeParamList)-1;
+	while(modeParamList[idx] != ',' && modeParamList[idx] != ';') {
+		idx--;
+	}
+	modeParamList[idx] = ';';
+    
+    /*if(strlen(modeParamList) + textSize + 2 <= MAX_PUBLISHED_STRING_SIZE) {
+        strcat(modeParamList,";");
+    } else {
+        char tempChar[MAX_PUBLISHED_STRING_SIZE];
+        strcpy(tempChar,modeParamList);
+        sprintf(modeParamList,"");
+        strncat(modeParamList, tempChar, MAX_PUBLISHED_STRING_SIZE-1);
+        strcat(modeParamList, ";");
+    }*/
+    sprintf(debug,"Error: modeParamList has reached max size limit");
+    
+    return false;
+}
+
+int getSwitchTitleStructIndex(int modeId) {
+    uint16_t i;
+    for(i=0;i<sizeof switchTitleStruct / sizeof switchTitleStruct[0];i++) {
+        if(switchTitleStruct[i].modeId == modeId)
+            return i;
+    }
+    sprintf(debug,"Error: Missing Switch Titles for mode %s", modeStruct[getModeIndexFromID(modeId)].modeName);
+    return -1;
 }
 
 //delay (or speed) is passed 
@@ -280,51 +503,42 @@ void loop() {
  
     if(currentMillis - previousMillis > oneMinuteInterval) {
         previousMillis = currentMillis;
-        getTemperature();
         tHour = Time.hour();
 
-        if(measuredTemperature < MINFANTEMP) {
-			//Turn fan Off
-            analogWrite(FAN_PIN, 0); 
-            //Spark.publish("Fan", "OFF", 36000, PRIVATE);
-            //Spark.publish("Fan", "Off");
-            //Spark.publish("Fan Off", NULL, 36000, PRIVATE);
+        if(GET_TEMP_ENABLED) {
+            getTemperature();
+            if(measuredTemperature < MINFANTEMP) {
+    			//Turn fan Off
+                analogWrite(FAN_PIN, 0); 
+            }
+            else if(measuredTemperature > MINFANTEMP && measuredTemperature <  MAXFANTEMP) {
+    			//Turn fan on at low speed
+                analogWrite(FAN_PIN, 100); 
+            }
+            else if(measuredTemperature >  MAXFANTEMP) {
+    			//Turn fan on at full speed
+                analogWrite(FAN_PIN, 255); 
+            }
+            if(measuredTemperature > MAXTEMP) {
+    			//Turn fan on at full speed and turn Off the lights
+                analogWrite(FAN_PIN, 255); 
+    			setNewMode(getModeIndexFromID(OFF));
+            }  
         }
-        else if(measuredTemperature > MINFANTEMP && measuredTemperature <  MAXFANTEMP) {
-			//Turn fan on at low speed
-            analogWrite(FAN_PIN, 100); 
-            //Spark.publish("Fan", "Low", 36000, PRIVATE);
-            //Spark.publish("Fan", "Low");
-            //Spark.publish("Fan Low", NULL, 36000, PRIVATE);
-        }
-        else if(measuredTemperature >  MAXFANTEMP) {
-			//Turn fan on at full speed
-            analogWrite(FAN_PIN, 255); 
-            //Spark.publish("Fan", "High", 36000, PRIVATE);
-            //Spark.publish("Fan", "High");
-           // Spark.publish("Fan High", NULL, 36000, PRIVATE);
-        }
-        if(measuredTemperature > MAXTEMP) {
-			//Turn fan on at full speed and turn Off the lights
-            analogWrite(FAN_PIN, 255); 
-			setNewMode(getModeIndexFromID(OFF));
-        }  
     //Put other timing stuff in here to speed up main loop
         if (currentMillis - lastSync > oneDayInterval) {
             // Request time time synchronization from the Spark Cloud
-            sprintf(debug,"Last sync time = %i,", (int)(currentMillis - lastSync));
+           // sprintf(debug,"Last sync time = %i,", (int)(currentMillis - lastSync));
 			Particle.syncTime();
             lastSync = currentMillis;
         }
-        if (currentMillis - lastCommandReceived > oneHourInterval) {
+       if(autoShutOff && (currentMillis - lastCommandReceived > oneHourInterval)) {
             //Auto Off Criteria
             //If it's Monday through Friday between 8am and 4pm or between 10pm and 5am any day, turn Off the lights
-            if(((Time.weekday() >= 2 && Time.weekday() <=6) && (Time.hour() >= 8 && Time.hour() <= 16)) || (Time.hour() >= 22) || (Time.hour() <= 5)) {
+            if(((Time.weekday() >= 2 && Time.weekday() <=6) && (Time.hour() >= 8 && Time.hour() <= 16)) || (Time.hour() >= 23) || (Time.hour() <= 5)) {
                 //No one is home or everyone is sleeping. So shut it down
-				sprintf(debug,"Last auto Off time = %i,", (int)(currentMillis - lastCommandReceived));
-				lastCommandReceived = currentMillis;
-				iwifi = WiFi.RSSI();
-				setNewMode(getModeIndexFromID(OFF));
+   				lastCommandReceived = currentMillis;
+   				setNewMode(getModeIndexFromID(OFF));
                 run = TRUE;
             }
         }
@@ -337,7 +551,7 @@ int runMode(int modeID) {
         case OFF:
     	    colorAll(strip.Color(0,0,0));
     		break;
-        case COLORALL:
+       case COLORALL:
     	    colorAll(color1);
     	    break;
         case CHASER:
@@ -358,9 +572,9 @@ int runMode(int modeID) {
     	case COLORCHASE:    
     	    colorChase(color1, color2);
     	    break;
-    	case STROBE:
+/*    	case STROBE:
     	    strobe(color1);
-    	    break;    	
+    	    break;*/    	
     	case RAINBOW:
     	    rainbowCycle();
     	    break;
@@ -382,6 +596,17 @@ int runMode(int modeID) {
     	case WARMFADE:    
     	    warmFade();
     	    break;
+    	case CHRISTMASWREATH:
+    	    christmasWreath();
+    	    break;
+    	case PLANTLIFE: //There's plants under these lights
+    	    colorAll(strip.Color(0,0,0));
+    	    setZone3(PINK); 
+    	    showPixels();
+    	    break;
+    	case FLICKER:
+    	    flicker();
+    	    break;
     	case NORMAL:
     	default:
 		    colorAll(defaultColor);
@@ -391,25 +616,26 @@ int runMode(int modeID) {
 }
 
 void demo(void) {
-    unsigned int mode;
+    uint8_t mode;
     //Add the dynamic modes you want to cycle through in this array
-    int modes2Cycle[] = {CYCLECHASER, COLORFADE, COLORWIPE, RAINBOW, THEATERCHASE, FROZEN, COLLIDE};
+    int modes2Cycle[] = {CYCLECHASER,COLORFADE,COLORWIPE,RAINBOW,CYCLEWIPE,THEATERCHASE,FROZEN,COLLIDE,COLORFADE,WARMFADE,CHRISTMASTREE,CHRISTMASWREATH};
     const unsigned long modeInterval =  2*60*1000; //Adjust the lifespan for each mode to perform
     unsigned long lastTime =  millis();
-    
+    arrayShuffle(modes2Cycle, sizeof modes2Cycle / sizeof modes2Cycle[0]);
     for(mode=0;mode<sizeof modes2Cycle / sizeof modes2Cycle[0];mode++) {
         color1 = Wheel(random(255));
         color2 = Wheel(random(255));
         color3 = Wheel(random(255));
         color4 = Wheel(random(255));
-        sprintf(debug,"DemoInsideLoop-ArraySize=%i-ModeIndex=%i-Mode=%i",sizeof modes2Cycle / sizeof modes2Cycle[0], mode,modes2Cycle[mode]);
+        //sprintf(debug,"DemoInsideLoop-ArraySize=%i-ModeIndex=%i-Mode=%i",sizeof modes2Cycle / sizeof modes2Cycle[0], mode,modes2Cycle[mode]);
         while(millis() - lastTime < modeInterval) {
             runMode(modes2Cycle[mode]);
             if(stop == TRUE) {return;}
         }
         lastTime = millis();
     }
-    sprintf(debug,"DemoOutOfLoop-Mode=%i", mode);
+    
+    //sprintf(debug,"DemoOutOfLoop-Mode=%i", mode);
     run = true; //in case it's off, let's turn it back on
 }
 
@@ -421,6 +647,20 @@ int getTemperature(void){
     return 1;
 }
 
+void arrayShuffle(int arrayToShuffle[], int arraySize) {
+    uint16_t i; 
+    char cbuff[20];
+
+    for(i=0;i<=arraySize;i++) {
+        int r = random(0,arraySize);  // generate a random position
+        int temp = arrayToShuffle[i]; 
+        arrayToShuffle[i] = arrayToShuffle[r]; 
+        arrayToShuffle[r] = temp;
+        //sprintf(cbuff,"%i %i %s ", arraySize,r,modeStruct[getModeIndexFromID(arrayToShuffle[i])].modeName);
+        //strcat(debug,cbuff);
+    }
+}
+
 //Used in all modes to set the brightness, show the lights, process Spark events and delay
 int showPixels(void) {
 	strip.setBrightness(brightness);
@@ -428,6 +668,7 @@ int showPixels(void) {
     Particle.process();    //process Spark events
 	return 1;
 }
+
 
 // Set all pixels in the strip to a solid color
 int colorAll(uint32_t c) {
@@ -517,9 +758,10 @@ int colorChase(uint32_t c1, uint32_t c2) {
     /* The number of pixels to turn on of each color in a row
     * i.e. pixNum=3 will turn the first 3 pixels c1 and then
     * then next 3 pixels c2, and the next 3 pixels c1, etc.  */
-    int pixNum = 3; 
+    uint8_t pixNum = 3; 
+    uint16_t i;
     int speedfactor = 3;    //increase the delay time
-    for (int i=0; i < strip.numPixels(); i++) {
+    for (i=0; i < strip.numPixels(); i++) { 
       if(i%(pixNum*2)>=0 && i%(pixNum*2)<=(pixNum-1)) {
         strip.setPixelColor(i, c1 );
       }
@@ -530,7 +772,7 @@ int colorChase(uint32_t c1, uint32_t c2) {
     showPixels();
     if(stop == TRUE) {return 0;}
 	delay(speed*speedfactor);
-    for (int i=0; i < strip.numPixels(); i++) {
+    for (i=0; i < strip.numPixels(); i++) {
       if(i%(pixNum*2)>=0 && i%(pixNum*2)<=(pixNum-1)) {
         strip.setPixelColor(i, c2 );
       }
@@ -541,14 +783,16 @@ int colorChase(uint32_t c1, uint32_t c2) {
     showPixels();
     if(stop == TRUE) {return 0;}
 	delay(speed*speedfactor);
+	return 1;
 }
 
 //A colored Christmas light string that twinkles
 void christmasTree(void) {
+    uint16_t i, f;
     run = true;
-    int speedfactor = 10;    //increase the delay time
-    for (int f=0; f < 6; f++) {
-        for (int i=0; i < strip.numPixels(); i++) {
+    int speedfactor = 12;    //increase the delay time
+    for (f=0; f < 6; f++) {
+        for (i=0; i < strip.numPixels(); i++) {
           if(i%6==0) {
             strip.setPixelColor(i, 255,0,0 );
           }
@@ -588,23 +832,190 @@ void christmasTree(void) {
 *  the Android app supports a max of 6 zones
 */
 int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4) {
-    uint16_t i;
     run = FALSE;
     
-    for(i=0; i<strip.numPixels(); i++) {
-        if(i>=zone1Start && i<=zone1End) 
-	        strip.setPixelColor(i, c1);
-		else if(i>=zone2Start && i<=zone2End)
-			strip.setPixelColor(i, c2);
-		else if(i>=zone3Start && i<=zone3End)
-			strip.setPixelColor(i, c3);
-		else if(i>=zone4Start && i<=zone4End)
-		    strip.setPixelColor(i, c4);
-	}
+	setZone1(c1);
+	setZone2(c2);
+	setZone3(c3);
+	setZone4(c4);
     showPixels();
     return 1;
 }
 
+void setZone1(uint32_t c) {
+    uint16_t i;
+    run = FALSE;
+    
+    for(i=zone1Start; i<=zone1End; i++) {
+        strip.setPixelColor(i, c);
+	}
+}
+
+void setZone2(uint32_t c) {
+    uint16_t i;
+    run = FALSE;
+    
+    for(i=zone2Start; i<=zone2End; i++) {
+		strip.setPixelColor(i, c);
+	}
+}
+
+void setZone3(uint32_t c) {
+    uint16_t i;
+    run = FALSE;
+    
+    for(i=zone3Start; i<=zone3End; i++) {
+		strip.setPixelColor(i, c);
+	}
+}
+
+void setZone4(uint32_t c) {
+    uint16_t i;
+    run = FALSE;
+    
+    for(i=zone4Start; i<=zone4End; i++) {
+        strip.setPixelColor(i, c);
+	}
+}
+
+
+void christmasWreath(void) {
+    double i;
+    int speedFactor = 16;    //increase the delay time
+    int currentBrightness = brightness;
+    /*
+    setZone1(RED); 
+    setZone2(GREEN);
+    setZone3(RED);
+    setZone4(GREEN);
+    if(fadeIn(speed*speedFactor) == 0) {return 0;}
+    delay(speed*speedFactor);
+    if(fadeOut(speed*speedFactor) == 0) {return 0;}
+    setZone1(GREEN); 
+    setZone2(RED);
+    setZone3(GREEN);
+    setZone4(RED);
+    if(fadeIn(speed*speedFactor) == 0) {return 0;}
+    delay(speed*speedFactor);
+    if(fadeOut(speed*speedFactor) == 0) {return 0;}
+*/    
+    //fade in
+    for (i=0; i < currentBrightness; i++) {
+    //for (i=4.712; i < 10.995*currentBrightness/255; i+=0.001) {
+        setZone1(RED); 
+    	setZone2(GREEN);
+    	setZone3(RED);
+    	setZone4(GREEN);
+    	brightness = i; // sin(i) * 127.5 + 127.5;
+    	showPixels();
+    	if(stop == TRUE) {return;}
+    	delay(speedFactor*speed);
+    }
+
+    //fade out
+	for (i=currentBrightness; i > 0; i-=2) {
+        setZone1(RED); 
+    	setZone2(GREEN);
+    	setZone3(RED);
+    	setZone4(GREEN);
+    	brightness = i;
+    	showPixels();
+    	if(stop == TRUE) {return;}
+    	delay(speedFactor*speed);
+    }
+    
+    //alternator colors, fade in
+    for (i=0; i < currentBrightness; i++) {
+    //for (i=4.712; i < 10.995*currentBrightness/255; i+=0.001) {
+        setZone1(GREEN); 
+    	setZone2(RED);
+    	setZone3(GREEN);
+    	setZone4(RED);
+    	brightness = i; // sin(i) * 127.5 + 127.5;
+    	showPixels();
+    	if(stop == TRUE) {return;}
+    	delay(speedFactor*speed);
+     }
+    showPixels();
+    
+    //fade out
+	for (i=currentBrightness; i > 0; i-=2) {
+        setZone1(GREEN); 
+    	setZone2(RED);
+    	setZone3(GREEN);
+    	setZone4(RED);
+    	brightness = i;
+    	showPixels();
+    	if(stop == TRUE) {return;}
+    	delay(speedFactor*speed);
+    }
+
+    brightness = currentBrightness;
+	run = true;
+}
+
+void flicker(void) {
+    uint16_t j;
+    int flickerBrightness = random(127, 255);
+    int flickerTime = random(1, 50);
+    float flickerScale = (float)flickerBrightness / 255;
+    float red = flickerScale * 255;
+    float green = flickerScale * 80;
+    float blue = flickerScale * 0;
+
+   for (float i = 0; i < flickerTime; i++) {
+        for (j=0; j < strip.numPixels(); j++) {
+            strip.setPixelColor(j, (byte)(redPrev + (red-redPrev)/flickerTime*i), (byte)(greenPrev + (green-greenPrev)/flickerTime*i), (byte)(bluePrev + (blue-bluePrev)/flickerTime*i));
+        }
+        showPixels();
+        if(stop == TRUE) {return;}
+        delay(1);
+    }
+    redPrev = red;
+    greenPrev = green;
+    bluePrev = blue;
+}
+
+/*
+int fadeIn(int fadeSpeed) {
+    uint16_t i, j;
+    run = true;
+    int currentBrightness = brightness; //get a copy of the current brightness
+    uint32_t initialPixelColor[strip.numPixels()];
+    
+    for (i=0; i < strip.numPixels(); i++) {
+        initialPixelColor[i] = strip.getPixelColor(i);
+    }
+    
+    for (j=0; j < currentBrightness; j+=5) {
+        brightness = j;  //Use brightness variable to fade in
+        showPixels();    //sets the brightness and then shows the pixels
+    	if(stop == TRUE) {return 0;}
+    	delay(fadeSpeed);
+    	for (i=0; i < strip.numPixels(); i++) {
+            strip.setPixelColor(i, initialPixelColor[i]);
+    	}
+    }
+        
+    brightness = currentBrightness;
+    return 1;
+}
+
+int fadeOut(int fadeSpeed) {
+    uint16_t i;
+    run = true;
+    int currentBrightness = brightness;
+    
+    for (i=currentBrightness; i > 0; i-=5) {
+        brightness = i;
+        showPixels();
+    	if(stop == TRUE) {return 0;}
+    	delay(fadeSpeed);
+    }
+    brightness = currentBrightness;
+    return 1;
+}
+*/
 //Fill the dots one after the other with a color, wait (ms) after each one
 int colorWipe(uint32_t c) {
     uint16_t i;
@@ -639,6 +1050,7 @@ void cycleWipe(void) {
 }
 
 //Dance Party Techno??
+/*
 void strobe(uint32_t color) {
     int returnValue=1;
 
@@ -649,7 +1061,7 @@ void strobe(uint32_t color) {
     if(stop == TRUE || returnValue == 0) {return;}
 	delay(speed);
     run = true;
-}
+}*/
 
 void rainbow(void) {
   uint16_t i, j;
@@ -678,17 +1090,18 @@ void rainbowCycle(void) {
   }
 }
 
-//Theatre-style crawling lights with rainbow effect
+//Theatre-style crawling lights with rai j, q, i;nbow effect
 void theaterChaseRainbow(void) {
-  for (uint16_t j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
-    for (uint16_t q=0; q < 3; q++) {
-        for (int i=0; i < strip.numPixels(); i=i+3) {
+    uint16_t j, q, i;
+  for (j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (q=0; q < 3; q++) {
+        for (i=0; i < strip.numPixels(); i=i+3) {
           strip.setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
         }
         showPixels();
         if(stop == TRUE) {return;}
 		delay(speed);
-        for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
+        for (i=0; i < strip.numPixels(); i=i+3) {
           strip.setPixelColor(i+q, 0);        //turn every third pixel off
         }
     }
@@ -747,14 +1160,14 @@ void frozen(void) {
 
 void setRandomSnowFlakes(int numFlakes)
 {
-    for(int i=0;i<numFlakes;i++) {
+    for(uint16_t i=0;i<numFlakes;i++) {
         strip.setPixelColor(randomFlakes[i], 0xFFFFFF); //Set snowflake
     }
 }
 
 void findRandomSnowFlakesPositions(int numFlakes)
 {
-    for(int i=0;i<numFlakes;i++) {
+    for(uint16_t i=0;i<numFlakes;i++) {
         randomFlakes[i] = random(strip.numPixels());
         if(i > 0) {
             for(int j=0;j<i;j++) {
@@ -918,10 +1331,16 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
+
+// ************************************************************************************
+// You must **NEVER** change any values below this line!
+// ************************************************************************************
+
 //Spark Cloud Mode
-//Expect a string like thisto change the mode Mode: M:ZONE,W:30,B:120,C1:002BFF,C2:FF00DB,C3:FF4600,C4:23FF00,
-//Or simply this to just update speed or brightness:        W:30,B:120,
+//Expect a string like thisto change the mode Mode: M:ZONE,D:30,B:120,C1:002BFF,C2:FF00DB,C3:FF4600,C4:23FF00,
+//Or simply this to just update speed or brightness:        D:30,B:120,
 //Received command should have an ending comma, it makes this code easier
+//Argument (command) length is limited to a max of 63 characters
 //All colors are in hex format
 //If the mode Mode is changing, return the enum value of the mode
 //Else if only the speed or brightness is being updated return the following:
@@ -944,15 +1363,16 @@ int SetMode(String command) {
     //keep track or the last command received for the auto off feature
     lastCommandReceived = millis();
     
-    //sprintf(debug,"%s", command.c_str());
+   // sprintf(debug,"%s", command.c_str());
 
 	while(idx != -1) {
-		if(command.charAt(beginIdx) == 'M') {
+		if(command.charAt(beginIdx) == 'M') {   //Mode name
 			//set the new mode from modeStruct array index
 			returnValue = setNewMode(getModeIndexFromName(command.substring(beginIdx+2, idx).c_str())); 
 			isNewMode = true;
+			 sprintf(debug,"Mode Idx %i. Mode %s", returnValue, command.substring(beginIdx+2, idx).c_str());
 		}
-		else if(command.charAt(beginIdx) == 'S') {
+		else if(command.charAt(beginIdx) == 'S') {  //Speed (Delay) value index
 		    int receivedSpeedValue = command.substring(beginIdx+2, idx).toInt();
 		    if(receivedSpeedValue > (int)(sizeof(speedPresets)/sizeof(int)))
 		        receivedSpeedValue = sizeof(speedPresets)/sizeof(int) - 1;
@@ -964,14 +1384,14 @@ int SetMode(String command) {
 			speedIndex = receivedSpeedValue;
 			speed = speedPresets[speedIndex];
 		}
-		else if(command.charAt(beginIdx) == 'B') {
+		else if(command.charAt(beginIdx) == 'B') {  //Scaled Brightness value
 		    int newBrightness = command.substring(beginIdx+2, idx).toInt() * 255 / 100;	//Scale 0-100 to 0-255
 			if(brightness != newBrightness) {
 				isNewBrightness = true;
 			}
 			brightness = newBrightness;
 		}
-        else if(command.charAt(beginIdx) == 'C') {
+        else if(command.charAt(beginIdx) == 'C') {  //Color values are comming in
             char * p;
             switch(command.charAt(beginIdx+1)) {
                 case '1':
@@ -992,13 +1412,32 @@ int SetMode(String command) {
                 case '6':
                     color6 = strtoul( command.substring(beginIdx+3, idx).c_str(), & p, 16 );  //Convert hex string to int
                     break;
+                    
             }
 		}
+		// T for Toggle switch - expect 0 or 1 for false or true
+		// S for Switch would have made more sense, but want to keep this backwards compatible and S is alreay Speed
+		else if(command.charAt(beginIdx) == 'T') { 
+            switch(command.charAt(beginIdx+1)) {
+                case '1':
+                    switch1 = command.substring(beginIdx+3, idx).toInt() & 1;
+                    break;
+                case '2':
+                    switch2 = command.substring(beginIdx+3, idx).toInt() & 1;
+                    break;
+                case '3':
+                    switch3 = command.substring(beginIdx+3, idx).toInt() & 1;
+                    break;
+                case '4':
+                    switch4 = command.substring(beginIdx+3, idx).toInt() & 1;
+                    break;
+            }
+		}
+
 		beginIdx = idx + 1;
 		idx = command.indexOf(',', beginIdx);
 	}
-
-	//Set the flags if it's a new mode
+    //Set the flags if it's a new mode
 	//Need this when just updating speed and brightness so a currently running mode doesn't start over
     if(isNewMode==true) {
         run = TRUE;
@@ -1009,22 +1448,49 @@ int SetMode(String command) {
 		showPixels();
 		if(isNewBrightness==true) {
 			//Let the sender know we got the new brightness command
-			returnValue = 1001;
+			returnValue = BRIGHTNESS_SET;
 		}
 		else if(isNewSpeed==true) {
 			//Let the sender know we got the new speed command
-			returnValue = 1002;
+			returnValue = SPEED_SET;
 		}
 		else {
 			//If we got here, it's possible that a command was set to update speed or brightness
 			//But neither one was a new value. The new values, equal the current values
-			returnValue = 1000;
+			returnValue = NO_CHANGE;
 		}
     }
 
 	// still here, so everything must be fine
 	return returnValue;
 }
+
+int SetText(String command) {
+
+    sprintf(textInputString,"%s", command.c_str());
+
+	return 1;
+}
+
+int Function(String command) {
+    int returnValue = 0;
+    if(command == ASO_CMD_ON) {
+        autoShutOff = true;
+        returnValue = ASO_STATUS_ON;
+    }
+    else if(command == ASO_CMD_OFF) {
+        autoShutOff = false;
+        returnValue = ASO_STATUS_OFF;
+    }else if(command == ASO_CMD_STATUS) {
+        if(autoShutOff == false) {
+            returnValue = ASO_STATUS_OFF;
+        } else {
+            returnValue = ASO_STATUS_ON;
+        }
+    }
+    
+    return returnValue;  
+ }
 
 //Change Mode based on the modeStruct array index
 int setNewMode(int newModeIndex) {
@@ -1035,7 +1501,7 @@ int setNewMode(int newModeIndex) {
 
 int getModeIndexFromName(String name)
 {
-    for(int i=0;i<(int)(sizeof modeStruct / sizeof modeStruct[0]);i++) {
+    for(uint16_t i=0;i<(int)(sizeof modeStruct / sizeof modeStruct[0]);i++) {
         if(name.equals(String(modeStruct[i].modeName))) {
             return i;
         }
@@ -1045,7 +1511,7 @@ int getModeIndexFromName(String name)
 
 int getModeIndexFromID(int id)
 {
-    for(int i=0;i<(int)(sizeof modeStruct / sizeof modeStruct[0]);i++) {
+    for(uint16_t i=0;i<(int)(sizeof modeStruct / sizeof modeStruct[0]);i++) {
         if(id == modeStruct[i].modeId) {
             return i;
         }

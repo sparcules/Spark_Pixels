@@ -11,6 +11,8 @@
 * Added Auto Shut Off control. Enable or disable your Neopixels auto turning off. Turn off times are configured in the sketch. Your sketch must be updated with the latest firmware to enable this option. See the github page for more info.
 * Added Get Cloud Variable option in the menu for debugging or other configurable cloud variables. This is a really neat feature, the dialog will populate a drop down box with all of your published cloud variables.
 
+Error after updating from v0.0.3?
+If you are getting the error: "No response from Core". Try uninstalling the app and re-installing.
 
 
 ## Community

@@ -1,5 +1,16 @@
 # Spark Pixels
-<img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and Spark Core firmware. You will need an Android device, a Spark Core, and a strip of Neopixels. The app and Core firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash the Core. The Android app reads in the list of available modes from the Core every time the app is launched. The Android app code should never need to be updated.
+<img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and firmware. You will need an Android device, a Spark Core or Particle Photon, and a strip of Neopixels. Spark Pixels is expandable. The app and firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash your Particle device. The Android app reads in the list of available modes from the device every time the app is launched. The Android app code should never need to be updated
+
+
+## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.0
+* Now supporting the L3D Cube! Get the [firmware here](https://github.com/wmoecke/Spark_Pixels).
+* Switch modes without having to update color/parameter settings a second time. To change color/parameters, tap on the color/parameter icon to update.
+* Added switch options to enable/disable extra features within a mode. Switch options are configured in the sketch.
+* Added a text input option for scrolling text - useful for Neopixel grids. 
+* Added support for more connected Neopixels! (up to 10 devices)
+* Added Auto Shut Off control. Enable or disable your Neopixels auto turning off. Turn off times are configured in the sketch. Your sketch must be updated with the latest firmware to enable this option. See the github page for more info.
+* Added Get Cloud Variable option in the menu for debugging or other configurable cloud variables. This is a really neat feature, the dialog will populate a drop down box with all of your published cloud variables.
+
 
 
 ## Community
@@ -13,25 +24,56 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 
 
 ## Usage
-1. Load the sparkPixel firmware on your Core
-2. Install the Android app on your phone from [here](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) or by importing the source code into Eclipse (see Android App Building below).
-3. Launch the app and login to your Particle.io account
+1. Install the Android app on your Android device from [here](https://play.google.com/store/apps/details?id=kc.spark.pixels.android).
+2. Launch the app and login to your Particle.io account.
+3. If not already done, connect your Spark Core or Photon device to your home WiFi network.
+    - **Spark Core** users: Use this app to connect your Core 
+    - **Photon** users: Use the Particle app found [here](https://play.google.com/store/apps/details?id=io.particle.android.app).
 4. You should see a list of your Cores, select your SparkPixel Core.
 4. A welcome screen should appear. 
-5. Tapping anywhere on the screen should bring up the settings page.
-6. ***Important*** select **Spark Core Neopixel Driver** from the settings page to select your SparkPixel Core. The app won't be able to communicate with your Core if you skip this step.
-7. Enjoy controlling your Neopixels from your Android device.
+5. Tapping anywhere on the screen should bring up the settings page. If this step got missed, open the menu and select **Settings**.
+6. ***Important*** select **Pixel Drivers** from the settings page to select your SparkPixel device. The app won't be able to communicate with your device` if you skip this step.
+7. Load the sparkPixel firmware on your device - see Flashing the Firmware below.
+8. Enjoy controlling your Neopixels from your Android device.
 
 
 ## Flashing the Firmware
 1. Go to the Particle web IDE (https://build.particle.io/build/) 
 2. Click on **CREATE NEW APP** and name it what you wish. I call mine *UNDERCABINETPIXELS*.
-3. Add the **NEOPIXEL** library, Click on the libraries icon and select **NEOPIXEL** (it should be at the top of the list). Then click on **INCLUDE IN APP**. Select the app you just created from the list. Then click on **ADD TO THIS APP**.
-4. Copy and paste the *SparkPixel.ino* code into the app, replacing any existing text.
+3. Add the **NEOPIXEL** library, it's best to do this step now. Click on the libraries icon and select **NEOPIXEL** (it should be at the top of the list). Then click on **INCLUDE IN APP**. Select the app you just created from the list. Then click on **ADD TO THIS APP**.
+4. Copy and paste the *SparkPixel.ino* code into the app, replacing all existing text.
 5. Update the ***PIXEL_CNT*** and ***PIXEL_PIN*** (near the top of the code) for your setup.
 6. Flash your Core and enjoy!
 
-**Note**: If you are trying to flash a Photon device and get compile errors, you may need to comment out *Spark.syncTime()* on *line 309*.
+
+## Adding a new Neopixel Mode to the Firmware
+1. Add your new mode function to the firmware code.
+2. Create a name for your new mode and add it to the list under "Mode ID Defines". It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
+3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
+4. Then decide how many colors you want to pass to your new mode, max is 6. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
+5. Then decide how many switches you want to pass to your new mode, max is 4. For every switch that you need will need to add a swtich title in the switchTitleStruct[] array.
+6. Then decide whether you need a text input for you new mode. This is only useful for Neopixel matrixes. 
+6. Add the mode name to the case statement in the runMode() and add the function call to it.
+
+## Firmware
+All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle clound names can only be up to 12 characters in length. The paramter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
+modeParmList Key:
+    * N - NULL, no extra parameters are needed for this mode
+    * C:# - Number of Colors, # = 1-6
+    * S:# - Number of Switches, # = 1-4
+    * T:  - A Text Input is required
+The modeList String is assembled semicolon delimited to match that of the modeParmList String. modeList only contains the mode name titles. i.e. - *OFF;NORMAL;COLORALL;ZONE;SPECTRUM;MESSAGE;* Eveery indexed position in modeList will have a corresponding entry in modeParmList.
+Feel free to remove any modes you don't care to have. You can simply comment out the line for the mode in the **modeStruct[]** array.
+
+I have my Neopixels installed under my cabinets. So, I wanted to be able to set each cabinet to a different color. I call this mode ZONE. If you care to use the ZONE mode, you may need to add or subtract the number of colors (1 for each zone) you have setup. The max allowed is 6. You will also need to edit the start and end pixel defines under the *ZONE mode Start and End Pixels* section.
+
+FYI on the CHASER mode, I wanted my chaser path to be a little bit different than the actual wired path of the LEDs. So I added a CHASER_LENGTH define and some extra Start and End defines under the *CHASER mode specific Start and End Pixels* section.
+
+There are 9 preset speeds define by the **speedPresets** int array. The Android app passes an index to this array. Feel free to change the speed values to your liking. I have added a speedFactor variable to some of my new modes to increase the delay.
+
+
+## Limitations
+Spark String Variables have a max length of 622 bytes. This will limit the number of modes you can create since the modes get populated into the modeList String variable. Based off the average number of characters I currently have, I estimated a max number of modes to be 69. I really can't imagine I'll ever have 40 or 50 modes. So, I don't see this being an issue. I do try to keep the number of characters in my mode names shorter just to be safe.
 
 
 ## Android App
@@ -42,29 +84,6 @@ I have a temperature sensor inside my project box that houses the Spark Core and
 The delay or speed of the Neopixels is controlled by a slider bar in the app. The speed is setup as preset settings that index the speedPresets array in the Firmware. The value sent to the Core is a numerical value from 0-8. The speed presets have default names, but can be changed to your liking in the settings page.
 
 The list view of the modes will not populate unless it gets the modeList cloud variable from the Core and you have to set the Spark Core Neopixel Driver in the settings page of the app. If you have more than one Core (or Photon) registered, the app will always default to selecting this device from your list of Cores when the app launches.
-
-
-## Adding a new Neopixel Mode to the Firmware
-1. Add your new mode function to the firmware code.
-2. Create a name for your new mode and add it to the list under "Mode ID Defines". It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
-3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
-4. Then decide how many colors you want to pass to your new mode. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
-5. Add the mode name to the case statement in the main loop() and add the function call to it.
-
-## Firmware
-All the mode information is defined in the **modeStruct[]** array. The setup routine takes this info and assembles the mode string info and the number of required colors into the Spark Cloud String Variable **modeList**. The info is assembled comma delimited. i.e. the modeList String would start out like this: *OFF,0,NORMAL,0,COLORALL,1,CHASER,1,ZONE,4, etc*
-Feel free to remove any modes you don't care to have. You can simply comment out the line for the mode in the **modeStruct[]** array.
-
-I have my Neopixels installed under my cabinets. So, I wanted to be able to set each cabinet to a different color. I call this mode ZONE. If you care to use the ZONE mode, you may need to add or subtract the number of colors (1 for each zone) you have setup. The max allowed is 6. You will also need to edit the start and end pixel defines under the *ZONE mode Start and End Pixels* section.
-
-FYI on the CHASER mode, I wanted my chaser path to be a little bit different than the actual wired path of the LEDs. So I added a CHASER_LENGTH define and some extra Start and End defines under the *CHASER mode specific Start and End Pixels* section.
-
-There are 9 preset speeds define by the **speedPresets** int array. The Android app passes an index to this array. Feel free to change these to your liking.
-
-
-## Limitations
-Spark String Variables have a max length of 622 bytes. This will limit the number of modes you can create since the modes get populated into the modeList String variable. Based off the average number of characters I currently have, I estimated a max number of modes to be 69. I really can't imagine I'll ever have 40 or 50 modes. So, I don't see this being an issue. I do try to keep the number of characters in my mode names shorter just to be safe.
-
 
 ## Android App Building
 1. In Eclipse, go to File --> Import, and under the Android "folder", click "Existing Android Code into workspace", then click Next

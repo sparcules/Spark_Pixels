@@ -50,12 +50,21 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 
 ## Adding a new Neopixel Mode to the Firmware
 1. Add your new mode function to the firmware code.
-2. Create a name for your new mode and add it to the list under "Mode ID Defines". It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
+2. Create a name for your new mode and add it to the list under *Mode ID Defines*. It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
 3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
 4. Then decide how many colors you want to pass to your new mode, max is 6. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
 5. Then decide how many switches you want to pass to your new mode, max is 4. For every switch that you need will need to add a swtich title in the switchTitleStruct[] array.
 6. Then decide whether you need a text input for you new mode. This is only useful for Neopixel matrixes. 
-6. Add the mode name to the case statement in the runMode() and add the function call to it.
+7. Add the mode name to the case statement in the runMode() and add the function call to it.
+
+Global variables controlled by the app:
+* brightness - Controls light intensity
+* speed - Sets the delay or the speed at which modes will sequence
+* speedIndex - Index value to the speedPresets[] array which then sets the speed value
+* color1, color2, color3, color4, color5, color6 - Color values selected from the app 
+* switch1, switch2, switch3, switch4 - Enable/Disable extra features within a mode
+* textInputString - Used to display text on Neopixel grids
+
 
 ## Firmware
 All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle clound names can only be up to 12 characters in length. The paramter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
@@ -128,7 +137,9 @@ The Android app was developed on a Samsung Galaxy S4 phone with Android version 
 
 
 ## Open Source Licenses
-Original code in this repository is licensed by Spark Labs, Inc. under the Apache License, Version 2.0.
+Original code in this repository is licensed by Spark Labs, Inc. under the Apache License, Version 2.0. 
 See LICENSE for more information.
 
 This app uses several Open Source libraries. See SparkCore/libs/licenses for more information.
+
+

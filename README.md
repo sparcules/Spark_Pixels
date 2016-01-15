@@ -3,7 +3,7 @@
 
 
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.0
-* Now supporting the L3D Cube! Get the [firmware here](https://github.com/wmoecke/Spark_Pixels).
+* Now supporting the L3D Cube by Looking Glass! Get Werner's [firmware here](https://github.com/wmoecke/Spark_Pixels).
 * Switch modes without having to update color/parameter settings a second time. To change color/parameters, tap on the color/parameter icon to update.
 * Added switch options to enable/disable extra features within a mode. Switch options are configured in the sketch.
 * Added a text input option for scrolling text - useful for Neopixel grids. 

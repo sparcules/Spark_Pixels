@@ -1,6 +1,18 @@
- <span class="badge-paypal"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RR57XN8E4KAJ2" title="Donate to this project using Paypal"><img src="https://github.com/sparcules/Spark_Pixels/blob/master/Pics/paypal_donate.png"  alt="PayPal donate button" /></a></span>
+<span class="badge-paypal"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RR57XN8E4KAJ2" title="Donate to this project using Paypal"><img src="https://github.com/sparcules/Spark_Pixels/blob/master/Pics/paypal_donate.png"  alt="PayPal donate button" /></a></span>
 # Spark Pixels
 <img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and firmware. You will need an Android device, a Spark Core or Particle Photon, and a strip of Neopixels. Spark Pixels is expandable. The app and firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash your Particle device. The Android app reads in the list of available modes from the device every time the app is launched. The Android app code should never need to be updated
+
+
+## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.5
+* Removed the Auto Shut Off control from the settings menu. Don’t freak, see next enhancement below :)
+* Added Aux Switch Panel - used to turn things on or off or switch between two options. i.e. switch between using a light sensor or the app to set LED brightness. Turning the Auto Shut Off on or off has migrated to use this feature.
+* Added menu and refresh icons to the main screens.
+* Added menu option for each device that allows renaming and changing the color of the device.
+* Added product identification under each device name (either Core or Photon).
+* Enhanced the Rename Device feature.
+* Removed the (confusing) need to set the Pixel Drivers in the settings menu. 
+* The app will now auto detect your devices that are online and loaded with the Spark Pixels firmware. This happens on startup or when pressing the reload icon. Devices that are recognized as having the the correct firmware will show the Spark Pixels icon next to the device name.
+* Added Auto Sync option in the settings menu. Checking this box will Sync the Time Zone Offset captured from your Android device on startup. This is checked by default.
 
 
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.0
@@ -32,12 +44,10 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 3. If not already done, connect your Spark Core or Photon device to your home WiFi network.
     - **Spark Core** users: Use this app to connect your Core 
     - **Photon** users: Use the Particle app found [here](https://play.google.com/store/apps/details?id=io.particle.android.app).
-4. You should see a list of your Cores, select your SparkPixel Core.
-4. A welcome screen should appear. 
-5. Tapping anywhere on the screen should bring up the settings page. If this step got missed, open the menu and select **Settings**.
-6. ***Important*** select **Pixel Drivers** from the settings page to select your SparkPixel device. The app won't be able to communicate with your device` if you skip this step.
-7. Load the sparkPixel firmware on your device - see Flashing the Firmware below.
-8. Enjoy controlling your Neopixels from your Android device.
+4. A welcome screen should appear. The message should tell you how many devices you have that are online and programmed with the Spark Pixels firmware.
+5. If you haven’t done so already, load the sparkPixel firmware onto your device - see Flashing the Firmware below.
+6. If you have more than one Particle device it is recommended to navigate to the settings menu and select the **Default Driver**. The app will auto-open this device on startup. This allows for a faster start up. 
+7. Enjoy controlling your Neopixels from your Android device.
 
 
 ## Flashing the Firmware
@@ -49,15 +59,61 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 6. Flash your Core and enjoy!
 
 
-## Adding a new Neopixel Mode to the Firmware
+## Adding a new Mode to the Firmware
 1. Add your new mode function to the firmware code.
-2. Create a name for your new mode and add it to the list under *Mode ID Defines*. It's actually of a *const int* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
+2. Create a name for your new mode and add it to the list under *Mode ID Defines*. It's actually of a *const uint8_t* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
+ 
+ ```
+   /* ======================= ADD NEW MODE ID HERE. ======================= */
+   // Mode ID Defines
+   const uint8_t DIGI            = 22;
+   const uint8_t NEW_MODE_1      = 23;
+   const uint8_t NEW_MODE_2      = 24;
+ ```
+ 
 3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
 4. Then decide how many colors you want to pass to your new mode, max is 6. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
 5. Then decide how many switches you want to pass to your new mode, max is 4. For every switch that you need will need to add a swtich title in the switchTitleStruct[] array.
 6. Then decide whether you need a text input for you new mode. This is only useful for Neopixel matrixes. 
-7. Add the mode name to the case statement in the runMode() and add the function call to it.
 
+ ```
+   /* ======================= ADD NEW MODE STRUCT HERE. ======================= */
+   modeParams modeStruct[] =
+   { 
+     /*     modeId           modeName 	     #Colors #Switches  textInput
+      *     -------------    -------------  ------- ---------  --------   */
+         {  OFF,             "OFF",             0,      0,      FALSE  },
+         {  COLORALL,        "COLORALL",        1,      0,      FALSE  },
+         {  NEW_MODE_1,      "New Mode 1",      0,      4,      FALSE  },
+         {  NEW_MODE_2,      "New Mode 2",      1,      0,      TRUE   },
+   };
+ ```
+ 
+7. If your mode is using Switches, add that same modeID name to the **switchTitleStruct[]** array. The number of switch titles entered here should match the number entered in the modeStruct[] array above.
+
+ ```
+   /* ======================= ADD ANY REQUIRED SWITCH TITLES HERE ======================= */
+   switchParams switchTitleStruct[] = 
+   { 
+    /*    modeId           S1Title                S2Title                S3Title                S4Title 
+     *    ---------------  ---------------------- ---------------------- ---------------------- ---------------------- */
+	      {  DIGI,            "Random Fill",         "Fade In",             "",                    ""                }, 
+	      {  NEW_MODE_1,      "Switch Title 1",      "Switch Title 2",      "Switch Title 3",      "Switch Title 4"  },
+};
+ ```
+ 
+8. Add the mode name to the case statement in the runMode() and add the function call to it.
+
+ ```
+   int runMode(int modeID) {
+       switch (modeID) {
+          case NEW_MODE_1:
+             newModeCode();
+             break;
+       }
+   }
+ ```
+ 
 Global variables controlled by the app:
 * brightness - Controls light intensity
 * speed - Sets the delay or the speed at which modes will sequence
@@ -67,14 +123,67 @@ Global variables controlled by the app:
 * textInputString - Used to display text on Neopixel grids
 
 
+## Adding a new Aux Switch to the Firmware
+1. Aux Switches is your tool to turn things On or Off or to toggle between two different options. By default, the Auto Shut Off (ASO) feature has migrated to use a Aux Switch.
+2. Create an ID name for your Aux Switch and add it to the list under *AUX SWITCH ID Defines*. 
+
+ ```
+   /* ======================= ADD NEW AUX SWITCH ID HERE. ======================= */
+   // AUX SWITCH ID Defines
+   const uint8_t ASO         = 0;
+   const uint8_t LIGHTSENSOR = 1;
+ ```
+
+2. Add that same name to the **auxSwitchStruct[]** array under the *auxSwitchId* column. 
+3. Next enter the preferred switch state under the *auxSwitchState* column. This will be the state of the switch after a device reset. TRUE = Switch is ON, FALSE = Switch if OFF.
+4. Now add a title of your switch under the *auxSwitchTitle* column. This is the title that can be seen under the Aux Switch Panel in the app.
+5. Then add On and Off switch state names under the *auxSwitchOnName* and *auxSwitchOffName* columns. These names will also show up in the app under the Aux Switch Panel.
+
+ ```
+   /* ======================= ADD NEW AUX SWITCH STRUCT HERE. ======================= */
+   auxSwitchParams auxSwitchStruct[] = 
+   { 
+     /*    auxSwitchId      auxSwitchState  auxSwitchTitle         auxSwitchOnName        auxSwitchOffName     
+     *     ---------------  --------------  ---------------------- ---------------------- ------------------*/
+        {  ASO,             TRUE,          "Auto Shut Off",       "ON",                  "OFF"             }, 
+        {  LIGHTSENSOR,     FALSE,         "Brightness Control",  "Light Sensor",        "App Controlled"  },
+   };
+ ```
+ 
+ 6. It's best to create a global boolean flag to store the running state of your switches. To keep your code organized, add it under the *Local Aux Switch Flags* section.
+ 
+  ```
+   /* ========================= Local Aux Switch Flags =========================== */
+   bool autoShutOff;   //Should we shut off the lights at certain times? This is toggled from the app
+   bool brightnessControl;
+ ```
+
+7. Finally, let's keep the boolean flag updated in the **updateAuxSwitches** function. Add the auxSwitchId (previously defined) to the switch statement. Add the boolean flag under that case, then simply set it equal to *auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState*. This function only updates one flag at a time. 
+  **Also don't forget to return 1 (TRUE).** Returning 0 from this function will result in the app getting a *Failed to Update* error, resulting in some squirrely results. Meaning the switch could still update but not properly show it in the app. 
+
+  ```
+   /**Update local Aux Switch variables
+   int updateAuxSwitches(int id) {
+    switch(id) {
+        case ASO:
+            autoShutOff = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
+            return 1;
+        case LIGHTSENSOR:
+            brightnessControl = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
+            return 1;
+    }
+    return -1;
+}
+  ```
+
 ## Firmware
-All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle clound names can only be up to 12 characters in length. The paramter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
+All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
 modeParmList Key:
     * N - NULL, no extra parameters are needed for this mode
     * C:# - Number of Colors, # = 1-6
     * S:# - Number of Switches, # = 1-4
     * T:  - A Text Input is required
-The modeList String is assembled semicolon delimited to match that of the modeParmList String. modeList only contains the mode name titles. i.e. - *OFF;NORMAL;COLORALL;ZONE;SPECTRUM;MESSAGE;* Eveery indexed position in modeList will have a corresponding entry in modeParmList.
+The modeList String is assembled semicolon delimited to match that of the modeParmList String. modeList only contains the mode name titles. i.e. - *OFF;NORMAL;COLORALL;ZONE;SPECTRUM;MESSAGE;* Every indexed position in modeList will have a corresponding entry in modeParmList.
 Feel free to remove any modes you don't care to have. You can simply comment out the line for the mode in the **modeStruct[]** array.
 
 I have my Neopixels installed under my cabinets. So, I wanted to be able to set each cabinet to a different color. I call this mode ZONE. If you care to use the ZONE mode, you may need to add or subtract the number of colors (1 for each zone) you have setup. The max allowed is 6. You will also need to edit the start and end pixel defines under the *ZONE mode Start and End Pixels* section.
@@ -89,7 +198,7 @@ Spark String Variables have a max length of 622 bytes. This will limit the numbe
 
 
 ## Android App
-The app is based off of the Spark Core App Thermostat: SCAT (https://github.com/RolfHut/ThermosApp) which is heavily based on the official Spark app for android. The source code for that app can be found at https://github.com/spark/android-app. The whole view has been revamped to control the Neopixel brightness, speed and mode. Upon loading the app view, the app aquires these Spark Variables from the Core: brightness, speed and a comma delimited String called modeList. Once aquired, the brightness and speed slider bars are updated per the current Spark Core values. The modeList String is parsed out to populate a list view to display all of the available modes programmed into the Core. The modeList String also holds the number of colors each mode needs to run. Some modes need 1 color to operate, some modes need more, some modes need none. The user will select the desired color from a color picker dialog in the app. 
+The app has been developed in Eclipse. The app is based off of the Spark Core App Thermostat: SCAT (https://github.com/RolfHut/ThermosApp) which is heavily based on the official Spark app for android. The source code for that app can be found at https://github.com/spark/android-app. The whole view has been revamped to control the Neopixel brightness, speed and mode. Upon loading the app view, the app acquires these Spark Variables from the Core: brightness, speed and a comma delimited String called modeList. Once acquired, the brightness and speed slider bars are updated per the current Spark Core values. The modeList String is parsed out to populate a list view to display all of the available modes programmed into the Core. The modeList String also holds the number of colors each mode needs to run. Some modes need 1 color to operate, some modes need more, some modes need none. The user will select the desired color from a color picker dialog in the app. 
 
 I have a temperature sensor inside my project box that houses the Spark Core and the +5V power supply. The temp reading can be displayed in the app view. The temperature reading view can be turned on or off in the settings found in the app menu.
 
@@ -132,9 +241,9 @@ If you want to know where the action is in the app, look at:
 * SparkCoreApp: There are a number of classes which rely on an initialization step during app startup.  All of this happens in SparkCoreApp.onCreate().
 
 
-## Hardware Implemenation
-Firmware was developed on the Spark Core. This should work with the Particle Photon as well, but it hasn't been tested. 
-The Android app was developed on a Samsung Galaxy S4 phone with Android version 5.0.1. I have no guarentees on how the list view will populate with another phone or tablet.
+## Hardware Implementation
+Firmware was originally developed on the Spark Core. I have now migrated to using a Particle Photon instead due to programming space limitations on the Core. I kept getting the red SOS LED of death telling me that I ran out of heap memory.
+The Android app was developed on a Samsung Galaxy S4 phone with Android version 5.0.1. I have no guarantees on how the list view will populate with another phone or tablet.
 
 
 ## Open Source Licenses
@@ -142,5 +251,10 @@ Original code in this repository is licensed by Spark Labs, Inc. under the Apach
 See LICENSE for more information.
 
 This app uses several Open Source libraries. See SparkCore/libs/licenses for more information.
+
+
+
+
+
 
 

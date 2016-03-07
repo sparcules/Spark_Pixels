@@ -142,7 +142,6 @@ const uint8_t COLORPULSE      = 22;     //credit: Werner Moecke
 const uint8_t ACIDDREAM       = 23;     //credit: Werner Moecke
 const uint8_t IFTTTWEATHER    = 24;     //credit: Kevin Carlborg
 
-const uint8_t PLANTLIFE       = 50;
 
 typedef struct modeParams {
    uint8_t 	 modeId;
@@ -184,7 +183,6 @@ modeParams modeStruct[] =
         {  FLICKER,         "FLICKER",         0,      0,      FALSE  },  //credit: David Verlee
         {  FROZEN,          "FROZEN",          0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  IFTTTWEATHER ,   "IFTTT WEATHER",   0,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  PLANTLIFE,       "PLANTLIFE",       0,      0,      FALSE  },
         {  COLORPULSE,      "PULSE",           0,      0,      FALSE  },  //credit: Werner Moecke
         {  RAINBOW,         "RAINBOW",         0,      0,      FALSE  },  //credit: Neopixel Library
         //{  STROBE, 	    "STROBE",          1,      0,      FALSE  }, //intense, use at your own risk, uncomment code below
@@ -857,11 +855,6 @@ int runMode(int modeID) {
     	    break;
     	case IFTTTWEATHER:
 		    iftttWeather(color6);
-    	    break;
-    	case PLANTLIFE: //There's plants under these lights
-    	    transitionAll(black,LINEAR);
-    	    setZone3(PINK); 
-    	    showPixels();
     	    break;
     	case RAINBOW:
     	    rainbowCycle();

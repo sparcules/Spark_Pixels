@@ -7,7 +7,7 @@
 * Removed the Auto Shut Off control from the settings menu. Don’t freak, see next enhancement below :)
 * Added Aux Switch Panel - used to turn things on or off or switch between two options. i.e. switch between using a light sensor or the app to set LED brightness. Turning the Auto Shut Off on or off has migrated to use this feature.
 * Added menu and refresh icons to the main screens.
-* Added menu option for each device that allows renaming and changing the color of the device.
+* Added menu option for each device that allows renaming and changing the (in app) color of the device.
 * Added product identification under each device name (either Core or Photon).
 * Enhanced the Rename Device feature.
 * Removed the (confusing) need to set the Pixel Drivers in the settings menu. 
@@ -45,7 +45,7 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
     - **Spark Core** users: Use this app to connect your Core 
     - **Photon** users: Use the Particle app found [here](https://play.google.com/store/apps/details?id=io.particle.android.app).
 4. A welcome screen should appear. The message should tell you how many devices you have that are online and programmed with the Spark Pixels firmware.
-5. If you haven’t done so already, load the sparkPixel firmware onto your device - see Flashing the Firmware below.
+5. If you haven’t done so already, load the SparkPixels firmware onto your device - see Flashing the Firmware below.
 6. If you have more than one Particle device it is recommended to navigate to the settings menu and select the **Default Driver**. The app will auto-open this device on startup. This allows for a faster start up. 
 7. Enjoy controlling your Neopixels from your Android device.
 
@@ -61,7 +61,7 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 
 ## Adding a new Mode to the Firmware
 1. Add your new mode function to the firmware code.
-2. Create a name for your new mode and add it to the list under *Mode ID Defines*. It's actually of a *const uint8_t* type. Try to keep the number of characters to a minimum. See Limitations below for explanation.
+2. Create a name for your new mode and add it to the list under *Mode ID Defines*. It's actually of a *const uint8_t* type. Try to keep the number of characters to a minimum. See Limitations below for explanation. For demonstration purposes, let's add two new modes that we'll name as NEW_MODE_1 and NEW_MODE_2. (See code example below).
  
  ```
    /* ======================= ADD NEW MODE ID HERE. ======================= */
@@ -71,10 +71,10 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
    const uint8_t NEW_MODE_2      = 24;
  ```
  
-3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. 
-4. Then decide how many colors you want to pass to your new mode, max is 6. (The Android app will force you to select this many different colors when selecting this mode). i.e The COLORALL mode takes one color. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode.
-5. Then decide how many switches you want to pass to your new mode, max is 4. For every switch that you need will need to add a swtich title in the switchTitleStruct[] array.
-6. Then decide whether you need a text input for you new mode. This is only useful for Neopixel matrixes. 
+3. Add that same name to the **modeStruct[]** array. The previously defined name must be used as the modeID parameter. I also use the same name as the modeName string. (See next code example below). 
+4. Then decide how many colors you want to pass to your new mode, max is 6. (The Android app will force you to select this many different colors when selecting this mode). i.e. The NEW_MODE_2 mode that we just created, takes 2 colors. When the user selects this mode from the android app, the app will popup a color picker dialog to let the user pick the desired color for to pass to the selected mode. (See next code example below).
+5. Then decide how many switches you want to pass to your new mode, max is 4. For every switch that you want, you will need to add a switch title for it in the switchTitleStruct[] array. i.e. The NEW_MODE_1 mode we created, needs 4 switches. (See next code example below).
+6. Then decide whether you need a text input for you new mode. This is only useful for Neopixel matrixes. i.e. The NEW_MODE_2 is setup to use a text input, so we set that column to true. (See next code example below).
 
  ```
    /* ======================= ADD NEW MODE STRUCT HERE. ======================= */
@@ -84,12 +84,13 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
       *     -------------    -------------  ------- ---------  --------   */
          {  OFF,             "OFF",             0,      0,      FALSE  },
          {  COLORALL,        "COLORALL",        1,      0,      FALSE  },
+         // Insert new modes here
          {  NEW_MODE_1,      "New Mode 1",      0,      4,      FALSE  },
-         {  NEW_MODE_2,      "New Mode 2",      1,      0,      TRUE   },
+         {  NEW_MODE_2,      "New Mode 2",      2,      0,      TRUE   },
    };
  ```
  
-7. If your mode is using Switches, add that same modeID name to the **switchTitleStruct[]** array. The number of switch titles entered here should match the number entered in the modeStruct[] array above.
+7. If your mode is using Switches, add that same modeID name to the **switchTitleStruct[]** array. The number of switch titles entered here should match the number entered in the modeStruct[] array above. i.e. Lets look at the NEW_MODE_1 example below. We entered 4 in the #Switches column above. So now we need to enter in titles for the 4 switches below.
 
  ```
    /* ======================= ADD ANY REQUIRED SWITCH TITLES HERE ======================= */
@@ -102,13 +103,16 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 };
  ```
  
-8. Add the mode name to the case statement in the runMode() and add the function call to it.
+8. Add the mode name to the case statement in the runMode() and add the function call to it. i.e. Notice that NEW_MODE_2 was defined to need 2 colors above. So we pass the global variables color1 and color2 to the newModeCode() function. The variables color1 and color2 will get set by the SetMode (cloud) function when the NEW_MODE_2 mode gets selected from the app.
 
  ```
    int runMode(int modeID) {
        switch (modeID) {
           case NEW_MODE_1:
              newModeCode();
+             break;
+          case NEW_MODE_2:
+             newModeCode(uint32_t color1, uint32_t color2);
              break;
        }
    }
@@ -135,7 +139,7 @@ Global variables controlled by the app:
  ```
 
 2. Add that same name to the **auxSwitchStruct[]** array under the *auxSwitchId* column. 
-3. Next enter the preferred switch state under the *auxSwitchState* column. This will be the state of the switch after a device reset. TRUE = Switch is ON, FALSE = Switch if OFF.
+3. Next enter the preferred switch state under the *auxSwitchState* column. This will be the state of the switch after a device reset. TRUE = Switch is ON, FALSE = Switch is OFF.
 4. Now add a title of your switch under the *auxSwitchTitle* column. This is the title that can be seen under the Aux Switch Panel in the app.
 5. Then add On and Off switch state names under the *auxSwitchOnName* and *auxSwitchOffName* columns. These names will also show up in the app under the Aux Switch Panel.
 
@@ -158,19 +162,16 @@ Global variables controlled by the app:
    bool brightnessControl;
  ```
 
-7. Finally, let's keep the boolean flag updated in the **updateAuxSwitches** function. Add the auxSwitchId (previously defined) to the switch statement. Add the boolean flag under that case, then simply set it equal to *auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState*. This function only updates one flag at a time. 
-  **Also don't forget to return 1 (TRUE).** Returning 0 from this function will result in the app getting a *Failed to Update* error, resulting in some squirrely results. Meaning the switch could still update but not properly show it in the app. 
+7. Finally, let's keep the boolean flag updated in the **updateAuxSwitches** function. Add the auxSwitchId (previously defined) to the switch statement. Add the boolean flag under that case, then simply set it equal to *auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState*, and return the result. This function only updates one flag at a time. If your switch ID isn't found in this function, you will get a *Failed to Update* error in the app, possibly resulting in some squirrely results. Meaning the switch could still update but not properly show it in the app. 
 
   ```
    /**Update local Aux Switch variables
    int updateAuxSwitches(int id) {
     switch(id) {
         case ASO:
-            autoShutOff = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
-            return 1;
+            return autoShutOff = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
         case LIGHTSENSOR:
-            brightnessControl = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
-            return 1;
+            return brightnessControl = auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState;
     }
     return -1;
 }

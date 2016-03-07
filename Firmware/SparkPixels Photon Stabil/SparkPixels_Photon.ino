@@ -668,7 +668,7 @@ void makeAuxSwitchList(void) {
 		}
 		
 		//Update local Aux Switch variables
-		if(0 == updateAuxSwitches(auxSwitchStruct[i].auxSwitchId))
+		if(-1 == updateAuxSwitches(auxSwitchStruct[i].auxSwitchId))
 		    sprintf(debug,"Error: auxSwitch failed to update local variable");
     }
 }
@@ -788,8 +788,8 @@ void initializeEEPROM(void) {
 
 /**Update local Aux Switch variables
  *  @id the Aux Switch ID to update
- *  @return 1 if successful
- *  @return 0 if Switch ID was not found
+ *  @return current state of the switch (0 or 1)
+ *  @return -1 if Switch ID was not found
  */
 int updateAuxSwitches(int id) {
     switch(id) {
@@ -2147,6 +2147,7 @@ int FnRouter(String command) {
 	else if(command.substring(beginIdx, colonIdx)=="SETAUXSWITCH") {
 		//Expect a string like this: SETAUXSWITCH:1,0;
 		//That breaks down to: SwitchID,state;
+		//State must be 0 or 1
 		beginIdx = colonIdx+1;
 		int commaIdx = command.indexOf(',');
 		int semiColonIdx = command.indexOf(';');
@@ -2171,35 +2172,6 @@ int FnRouter(String command) {
     return -1;  
  }
  
-//Expect a string like this: 1,0;
-//That breaks down to: SwitchID,state;
-/*int SetAuxSwitch(String command) {
-    int returnValue = 1;
-    int beginIdx = 0;
-	int commaIdx = command.indexOf(',');
-	int semiColonIdx = command.indexOf(';');
-	int id = 0;
-
-	sprintf(debug,command);
-	
-	while(semiColonIdx != -1) {
-        id = (int) command.substring(beginIdx, commaIdx).toInt();
-        bool state = command.substring(commaIdx+1,semiColonIdx).equals("1") ? true : false;
-        auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState = state;
-        
-        beginIdx = semiColonIdx + 1;
-		commaIdx = command.indexOf(',', beginIdx);
-		semiColonIdx = command.indexOf(';', commaIdx);
-	}
-    
-    //Update the list
-    makeAuxSwitchList();
-    
-    //Update Switch flags
-    returnValue == updateAuxSwitches(id);
-
-    return returnValue;
-}*/
 
 //Change Mode based on the modeStruct array index
 int setNewMode(int newModeIndex) {

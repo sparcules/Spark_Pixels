@@ -194,6 +194,35 @@ Then add these lines in *setup()*:
   ```
   
   
+## Adding Time Zone Sync feature to your existing sketch
+1. Create this global variable near the top of your sketch and set it equal to the already defined TIME_ZONE_OFFSET.
+
+  ```
+  int timeZone = TIME_ZONE_OFFSET;
+  ```
+    
+2. Set the Time Zone API call to the timeZone Variable in setup()
+
+  ```
+  Time.zone(timeZone);  //set time zone
+  ```
+
+3. Add the update code to the FnRouter cloud function
+ 
+  ```
+  // Set time zone offset
+  if(command.substring(beginIdx, colonIdx)=="SETTIMEZONE") {
+      //Expect a string like this: SETTIMEZONE:-6
+      timeZone = command.substring(colonIdx+1).toInt();
+      Time.zone(timeZone);
+      return timeZone;
+  }
+  ```
+4. Make sure the Auto Sync option is checked in the settings menu in the app
+5. Enjoy never having to manually set Day Light Savings time again :)
+
+
+
 ## Firmware
 All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
 modeParmList Key:

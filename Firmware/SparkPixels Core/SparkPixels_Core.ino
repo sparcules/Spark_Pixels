@@ -1977,35 +1977,6 @@ int FnRouter(String command) {
     return -1;  
  }
  
-//Expect a string like this: 1,0;
-//That breaks down to: SwitchID,state;
-/*int SetAuxSwitch(String command) {
-    int returnValue = 1;
-    int beginIdx = 0;
-	int commaIdx = command.indexOf(',');
-	int semiColonIdx = command.indexOf(';');
-	int id = 0;
-
-	sprintf(debug,command);
-	
-	while(semiColonIdx != -1) {
-        id = (int) command.substring(beginIdx, commaIdx).toInt();
-        bool state = command.substring(commaIdx+1,semiColonIdx).equals("1") ? true : false;
-        auxSwitchStruct[getAuxSwitchIndexFromID(id)].auxSwitchState = state;
-        
-        beginIdx = semiColonIdx + 1;
-		commaIdx = command.indexOf(',', beginIdx);
-		semiColonIdx = command.indexOf(';', commaIdx);
-	}
-    
-    //Update the list
-    makeAuxSwitchList();
-    
-    //Update Switch flags
-    returnValue == updateAuxSwitches(id);
-
-    return returnValue;
-}*/
 
 //Change Mode based on the modeStruct array index
 int setNewMode(int newModeIndex) {

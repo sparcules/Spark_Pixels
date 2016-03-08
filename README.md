@@ -176,7 +176,24 @@ Global variables controlled by the app:
     return -1;
 }
   ```
+  
+If you're adding the Aux Switches to you're current sketch. Find these functions in the sketch under the Firmware folder and add them to your sketch:
 
+  ```
+	void makeAuxSwitchList(void)
+	int updateAuxSwitches(int id)
+	int getSwitchTitleStructIndex(int modeId)
+	int FnRouter(String command)	// Update or add this one
+  ```
+
+Then add these lines in *setup()*:
+
+  ```
+	Particle.function("Function",      FnRouter);
+	makeAuxSwitchList();
+  ```
+  
+  
 ## Firmware
 All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
 modeParmList Key:

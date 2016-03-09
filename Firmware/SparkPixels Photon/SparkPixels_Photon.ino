@@ -360,17 +360,12 @@ char debug[200];                    //We might want some debug text for developm
 //ZONE mode Start and End Pixels
 int zone1Start = 0;
 int zone1End   = 59;
-int zone2Start = 60;
+int zone2Start = zone1End + 1;
 int zone2End   = 141;
-int zone3Start = 142;
+int zone3Start = zone2End + 1;
 int zone3End   = 219;
-int zone4Start = 220;
-int zone4End   = 267;
-
-//CHASER mode specific Start and End Pixels, re-use some from ZONE mode
-int ChaserZone3Section1End   = 177;
-int chaserZone3Section2Start = 189;
-#define CHASER_LENGTH   256
+int zone4Start = zone3End + 1;
+int zone4End   = PIXEL_CNT - 1;
 
 //Color Defines
 #define RED   0xFF0000
@@ -1047,69 +1042,32 @@ void iftttWeather(uint32_t c) {
     	    
 //Turn off all pixels then run a single color down the strip 
 //One pixel at a time
-
 int colorChaser(uint32_t c) {
     uint16_t i;
     run = FALSE;
     
     //Turn Off all pixels
-    for(i=0; i<strip.numPixels(); i++) {
-        strip.setPixelColor(i, 0);
-    }
-    strip.show();
+    transitionAll(black,LINEAR);
 
-    //Forward
-    for(i=zone1Start; i<=ChaserZone3Section1End; i++) {
-        strip.setPixelColor(i, c);
-        if(i > zone1Start) {
-            strip.setPixelColor(i-1, 0);
-        }
-        showPixels();
-        if(stop == TRUE) {return 0;}
+	//Forward
+	for(i=0; i<PIXEL_CNT; i++) {
+		strip.setPixelColor(i, c);
+		if(i > 0) {
+			strip.setPixelColor(i-1, 0);
+		}
+		showPixels();
+		if(stop == TRUE) {return 0;}
 		delay(speed);
-    }
-    strip.setPixelColor(ChaserZone3Section1End, 0);
-    for(i=zone4Start; i<=zone4End; i++) {
-        strip.setPixelColor(i, c);
-        strip.setPixelColor(i-1, 0);
-        showPixels();
-        if(stop == TRUE) {return 0;}
+	}
+
+	//Reverse
+	for(i=PIXEL_CNT-1; i>=0; i--) {
+		strip.setPixelColor(i, c);
+		strip.setPixelColor(i+1, 0);
+		showPixels();
+		if(stop == TRUE) {return 0;}
 		delay(speed);
-    }
-    strip.setPixelColor(zone4End, 0);
-    for(i=chaserZone3Section2Start; i<=zone3End; i++) {
-        strip.setPixelColor(i, c);
-        strip.setPixelColor(i-1, 0);
-        showPixels();
-        if(stop == TRUE) {return 0;}
-		delay(speed);
-    }
-	
-    //Reverse
-    strip.setPixelColor(zone3End, 0);
-	for(i=zone3End-1; i>=chaserZone3Section2Start; i--) {
-        strip.setPixelColor(i, c);
-        strip.setPixelColor(i+1, 0);
-        showPixels();
-        if(stop == TRUE) {return 0;}
-		delay(speed);
-    }
-    strip.setPixelColor(chaserZone3Section2Start, 0);
-    for(i=zone4End; i>=zone4Start; i--) {
-        strip.setPixelColor(i, c);
-        strip.setPixelColor(i+1, 0);
-        showPixels();
-        if(stop == TRUE) {return 0;}
-		delay(speed);
-    }
-    strip.setPixelColor(zone4Start, 0);
-    for(i=ChaserZone3Section1End; i>zone1Start; i--) {
-        strip.setPixelColor(i, c);
-        strip.setPixelColor(i+1, 0);
-        showPixels();
-        if(stop == TRUE) {return 0;}
-		delay(speed);
-    }
+	}
     return 1;
 }
 

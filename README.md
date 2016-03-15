@@ -2,6 +2,12 @@
 # Spark Pixels
 <img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and firmware. You will need an Android device, a Spark Core or Particle Photon, and a strip of Neopixels. Spark Pixels is expandable. The app and firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash your Particle device. The Android app reads in the list of available modes from the device every time the app is launched. The Android app code should never need to be updated
 
+## What firmware do I use?
+* For single strip or Neopixel rings, get the [firmware here](https://github.com/sparcules/Spark_Pixels/tree/master/Firmware).
+* For the [L3D Cube](http://lookingglassfactory.com/), get Werner's [firmware here](https://github.com/wmoecke/Spark_Pixels). Or flash through [Cubetube here](http://www.cubetube.org/gallery/newestFirst/1438/).
+* Have a 2D Neopixel Matrix and want scrolling text? Sorry, this sketch hasn't been developed yet. But you can comb through Werner's sketch for the L3D Cube to get example code for scrolling text.
+* See [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware) below for instructions on how to flash through Particle's web IDE.
+
 
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.5
 * Removed the Auto Shut Off control from the settings menu. Don’t freak, see next enhancement below :)
@@ -54,7 +60,7 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 1. Go to the Particle web IDE (https://build.particle.io/build/) 
 2. Click on **CREATE NEW APP** and name it what you wish. I call mine *UNDERCABINETPIXELS*.
 3. Add the **NEOPIXEL** library, it's best to do this step now. Click on the libraries icon and select **NEOPIXEL** (it should be at the top of the list). Then click on **INCLUDE IN APP**. Select the app you just created from the list. Then click on **ADD TO THIS APP**.
-4. Copy and paste the *SparkPixel.ino* code into the app, replacing all existing text.
+4. Copy and paste the *SparkPixels.ino* code into the app, replacing all existing text.
 5. Update the ***PIXEL_CNT*** and ***PIXEL_PIN*** (near the top of the code) for your setup.
 6. Flash your Core and enjoy!
 

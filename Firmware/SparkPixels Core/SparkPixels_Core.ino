@@ -1,12 +1,20 @@
   /**
  ******************************************************************************
  * @file    SparkPixels.ino:
- *		New mode: DIGI, COLORPULSE, ACIDDREAM, IFTTT WEATHER
+ *      New Feature: Added REBOOT option in FnRouter. This is selectable in the app.
+ *                   In the app, Just open the Particle Cloud Panel from the menu.
+ * @author   Kevin Carlborg
+ * @version  V2.2.0
+ * @date     23-March-2016 ~ 25-March-2016
+ * 
+ * @file    SparkPixels.ino:
+ *		New mode: CHEERLIGHTS, DIGI, COLORPULSE, ACIDDREAM, IFTTT WEATHER
  *		New setting: AUX Switches
  *		New Functions: transitionALl, transitionOne, transitionHelper, getTransitionStep, 
  *                     clamp, updateAuxSwitches, getAuxSwitchIndexFromID, makeAuxSwitchList,
  *                     resetVariables, hexToInt, randomPixelFill, getColorFromInteger, 
- *                     getHighestValFromRGB, lerpColor, randomPixelFill, iftttWeather
+ *                     getHighestValFromRGB, lerpColor, randomPixelFill, cheerlights, 
+ *                     iftttWeather
  *      Updated Cloud Function: Renamed the local "cloud" function *Function* to *FnRouter*
  *      New Feature: Added AUX Switches used to turn things on or off or switch between two 
  *                   options, i.e. switch between using a light sensor or the app to set 
@@ -17,6 +25,7 @@
  *                      function with this input: M:IFTTT WEATHER,C6:0000FF,
  *                      Where 0000FF is the hex value for blue. Color must be in hex format
  *                      Oh, and Don't forget the ending comma,
+ *                   CHEERLIGHTS - go to http://cheerlights.com/ 
  * @author   Kevin Carlborg
  * @version  V2.1.0
  * @date     01-Januray-2016 ~ 7-March-2016
@@ -134,10 +143,11 @@ const uint8_t COLORCHASE      = 16;     //credit: Kevin Carlborg
 const uint8_t CHRISTMASLIGHTS = 17;     //credit: Kevin Carlborg
 const uint8_t CHRISTMASWREATH = 18;     //credit: Kevin Carlborg
 const uint8_t FLICKER         = 19;     //credit: David Verlee
-const uint8_t DIGI            = 20;     //credit: Kevin Carlborg
-const uint8_t COLORPULSE      = 21;     //credit: Werner Moecke
-const uint8_t ACIDDREAM       = 22;     //credit: Werner Moecke
-const uint8_t IFTTTWEATHER    = 23;     //credit: Kevin Carlborg
+const uint8_t CHEERLIGHTS     = 20;     //credit: Werner Moecke
+const uint8_t DIGI            = 21;     //credit: Kevin Carlborg
+const uint8_t COLORPULSE      = 22;     //credit: Werner Moecke
+const uint8_t ACIDDREAM       = 23;     //credit: Werner Moecke
+const uint8_t IFTTTWEATHER    = 24;     //credit: Kevin Carlborg
 
 
 typedef struct modeParams {
@@ -165,6 +175,7 @@ modeParams modeStruct[] =
         {  NORMAL,          "NORMAL",          0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  ACIDDREAM,       "ACID DREAM",      0,      0,      FALSE  },  //credit: Werner Moecke
         {  CHASER,          "CHASER",          1,      0,      FALSE  },  //credit: Kevin Carlborg  
+        {  CHEERLIGHTS,     "CHEERLIGHTS",     0,      0,      FALSE  },  //credit: Werner Moecke
         {  CHRISTMASLIGHTS, "CHRISTMASLIGHTS", 0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  CHRISTMASWREATH, "CHRISTMASWREATH", 0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  CYCLECHASER,     "CYCLECHASER",     0,      0,      FALSE  },  //credit: Kevin Carlborg
@@ -178,7 +189,7 @@ modeParams modeStruct[] =
         {  DIGI,            "DIGI",            0,      2,      FALSE  },  //credit: Kevin Carlborg
         {  FLICKER,         "FLICKER",         0,      0,      FALSE  },  //credit: David Verlee
         {  FROZEN,          "FROZEN",          0,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  IFTTTWEATHER ,   "IFTTT WEATHER",   1,      0,      FALSE  },  //credit: Kevin Carlborg
+        {  IFTTTWEATHER ,   "IFTTT WEATHER",   0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  COLORPULSE,      "PULSE",           0,      0,      FALSE  },  //credit: Werner Moecke
         {  RAINBOW,         "RAINBOW",         0,      0,      FALSE  },  //credit: Neopixel Library
         //{  STROBE, 	    "STROBE",          1,      0,      FALSE  }, //intense, use at your own risk, uncomment code below
@@ -293,6 +304,7 @@ int lastModeID;
 int run;    	//Use this for modes that don't need to loop. Set the color, then stop sending commands to the pixels
 int stop;   	//Use this to break out of sequence loops when changing to a new mode
 bool firstLap;
+bool resetFlag;
 
 //Misc variables
 int speed;	//not to be confused with speedIndex below, this is the local speed (delay) value
@@ -317,7 +329,7 @@ float greenPrev;
 float bluePrev;
 
 /** Common colors */
-const Color black           = Color(0x00, 0x00, 0x00);
+const Color black          = Color(0x00, 0x00, 0x00);
 const Color grey            = Color(0x92, 0x95, 0x91);
 const Color yellow          = Color(0xff, 0xff, 0x14);
 const Color incandescent    = Color(0xfd, 0xf5, 0xe6);  //This seems closer to incandescent color
@@ -384,6 +396,16 @@ int zone4End   = PIXEL_CNT - 1;
 //FROZEN mode defines
 int randomFlakes[(int)(PIXEL_CNT*0.1)]; // holds the snowflake positions no more than10% of total number of pixels
 
+/* ========================= CHEERLIGHTS mode defines ======================== */
+#define POLLING_INTERVAL 3000   // how often the photon polls the cheerlights API
+#define RESPONSE_TIMEOUT 500	// the timeout (in ms) to wait for a response from the cheerlights API
+TCPClient client;       // a TCP instance to let us query the cheerlights API over TCP
+String hostname, path;  // the URL and path to cheerlights' thingspeak directory
+String response;        // the response read from querying cheerlights' thingspeak directory
+uint32_t lastCol;
+bool connected;         // flag if we have a solid TCP connection
+int requestTime, pollTime;
+
 
 /* ========================= Transition function defines ======================== */
 #define LINEAR  0
@@ -423,6 +445,7 @@ uint32_t lerpColor(uint32_t c1, uint32_t c2, uint32_t val, uint32_t minVal, uint
 Color getColorFromInteger(uint32_t col);
 
 /* ======================= Spark Pixel Mode Prototypes =============================== */
+void cheerlights(void);
 void christmasLights(void);
 void christmasWreath(void);
 void collide(void);
@@ -486,15 +509,17 @@ void setup() {
     run = false;
     stop = false;
     autoShutOff = false;
-	//setNewMode(getModeIndexFromID(NORMAL));
-	setNewMode(getModeIndexFromID(OFF));
+    resetFlag = false;
+    
+	setNewMode(getModeIndexFromID(NORMAL));
+	//setNewMode(getModeIndexFromID(OFF));
 	defaultColor = strip.Color(255,255,60);  // This seems close to incandescent color 
 	lastSync = lastCommandReceived = previousMillis = millis();	//Take a time stamp
     c1 = Wheel(random(random(2, 256), random(2, 256)));
     c2 = Wheel(random(random(2, 256), random(2, 256)));
 
 	strip.begin();     			//Start up the Neopixels     	
-   // colorAll(defaultColor);     //Turn on the NORMAL Mode
+    colorAll(defaultColor);     //Turn on the NORMAL Mode
     transitionAll(getColorFromInteger(defaultColor),LINEAR);
     Particle.connect();         //Now connect to the cloud
     Time.zone(timeZone);  //set time zone 
@@ -667,6 +692,12 @@ void loop() {
         }
     }
     
+    if(resetFlag) {
+        resetFlag = false;
+        delay(100); //Need this here otherwise the Cloud Function returned response is null
+        System.reset();
+    }
+    
     unsigned long currentMillis = millis();
  
  //sprintf(debug,"ASO %i",(int)auxSwitchStruct[getAuxSwitchIndexFromID(ASO)].auxSwitchState);
@@ -717,6 +748,54 @@ void loop() {
     }
 }
 
+/*
+void initializeEEPROM(void) {
+    // See if this EEPROM has saved data
+    if(EEPROM.read(0)==117) {
+        // Set the time zone
+        if(EEPROM.read(1)==0)
+            timeZone = EEPROM.read(2)*-1;
+        else
+            timeZone = EEPROM.read(2);
+
+        // Set the hour format
+        if(EEPROM.read(3)==12)
+            time12Hour = true;
+        else
+            time12Hour = false;
+
+        EFFECT_MODE = EEPROM.read(4);
+        LAST_EFFECT_MODE = EFFECT_MODE;
+
+        color[0] = EEPROM.read(5);
+        color[1] = EEPROM.read(6);
+        color[2] = EEPROM.read(7);
+
+        RAINBOW_DELAY = EEPROM.read(8);
+
+    // If data has not been saved, "initialize" the EEPROM
+    } else {
+        // Initialize
+        EEPROM.write(0, 117);
+        // Time zone +/-
+        EEPROM.write(1, 0);
+        // Time zone
+        EEPROM.write(2, 0);
+        // Hour format
+        EEPROM.write(3, 24);
+        // Effect mode
+        EEPROM.write(4, 0);
+        // Red
+        EEPROM.write(5, 0);
+        // Green
+        EEPROM.write(6, 255);
+        // Blue
+        EEPROM.write(7, 128);
+        // Rainbow delay
+        EEPROM.write(8, RAINBOW_DELAY);
+    }
+}
+*/
 
 /**Update local Aux Switch variables
  *  @id the Aux Switch ID to update
@@ -745,7 +824,10 @@ int runMode(int modeID) {
         case CHASER:
     	    colorChaser(color1);
     		break;
- 		case CHRISTMASLIGHTS:
+    	case CHEERLIGHTS:
+		    cheerlights();
+			break;
+		case CHRISTMASLIGHTS:
     	    christmasLights();
     	    break;
 		case CHRISTMASWREATH:
@@ -811,6 +893,15 @@ int runMode(int modeID) {
 
 void resetVariables(int modeIndex) {
     switch (modeIndex) {
+		case CHEERLIGHTS:
+        	hostname = "api.thingspeak.com";
+		    path = "/channels/1417/field/2/last.txt";
+		    response = "";
+		    pollTime = millis() + POLLING_INTERVAL;
+		    lastCol = 0;
+        	client.stop();
+		    connected = client.connect(hostname, 80);
+		    break;
 	    case IFTTTWEATHER:
 	        transitionAll(black, LINEAR);
 	        break;
@@ -821,7 +912,7 @@ void resetVariables(int modeIndex) {
 void demo(void) {
     int mode;
     //Add the dynamic modes you want to cycle through in this array
-    int modes2Cycle[] = {COLORFADE,COLORWIPE,RAINBOW,CYCLEWIPE,THEATERCHASE,FROZEN,COLLIDE,COLORFADE,WARMFADE,CHRISTMASLIGHTS,CHRISTMASWREATH,DIGI,COLORPULSE, ACIDDREAM};
+    int modes2Cycle[] = {COLORFADE,COLORWIPE,RAINBOW,CYCLEWIPE,THEATERCHASE,FROZEN,COLLIDE,COLORFADE,WARMFADE,CHRISTMASLIGHTS,CHRISTMASWREATH,CHEERLIGHTS,DIGI,COLORPULSE, ACIDDREAM};
     const unsigned long modeInterval =  2*60*1000; //Adjust the lifespan for each mode to perform
     unsigned long lastTime =  millis();
     arrayShuffle(modes2Cycle, sizeof modes2Cycle / sizeof modes2Cycle[0]);
@@ -880,8 +971,7 @@ int showPixels(void) {
 // Set all pixels in the strip to a solid color
 int colorAll(uint32_t c) {
     uint16_t i; 
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
   
     for(i=0; i<strip.numPixels(); i++) {
         strip.setPixelColor(i, c);
@@ -1078,8 +1168,7 @@ void christmasLights(void) {
 *  the Android app supports a max of 6 zones
 */
 int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4) {
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
 	setZone1(c1);
 	setZone2(c2);
@@ -1091,8 +1180,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4) {
 
 void setZone1(uint32_t c) {
     uint16_t i;
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
     for(i=zone1Start; i<=zone1End; i++) {
         strip.setPixelColor(i, c);
@@ -1101,8 +1189,7 @@ void setZone1(uint32_t c) {
 
 void setZone2(uint32_t c) {
     uint16_t i;
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
     for(i=zone2Start; i<=zone2End; i++) {
 		strip.setPixelColor(i, c);
@@ -1111,8 +1198,7 @@ void setZone2(uint32_t c) {
 
 void setZone3(uint32_t c) {
     uint16_t i;
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
     for(i=zone3Start; i<=zone3End; i++) {
 		strip.setPixelColor(i, c);
@@ -1121,8 +1207,7 @@ void setZone3(uint32_t c) {
 
 void setZone4(uint32_t c) {
     uint16_t i;
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
     for(i=zone4Start; i<=zone4End; i++) {
         strip.setPixelColor(i, c);
@@ -1265,8 +1350,7 @@ void flicker(void) {
 //Fill the dots one after the other with a color, wait (ms) after each one
 int colorWipe(uint32_t c) {
     uint16_t i;
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
   
     for(i=0; i<strip.numPixels(); i++) {
         strip.setPixelColor(i, c);
@@ -1309,6 +1393,135 @@ void strobe(uint32_t color) {
     run = true;
 }
 
+
+void cheerlights(void) {
+    int red, green, blue;
+    bool headers;
+    char lastChar;
+    
+    if((millis()-pollTime)<=POLLING_INTERVAL) {
+        if(stop) {client.stop(); return;}
+	    if(!Particle.connected) {
+	        Particle.connect();
+	        waitFor(Particle.connected, 1000);
+	    }
+	    else {
+            //In order to allow changing the brightness at any moment
+            strip.setBrightness(brightness);
+            strip.show();
+            //process Spark events
+            Particle.process();
+            delay(100);
+	    }
+	    sprintf(debug, "pollinterval:%i, polltime:%i",POLLING_INTERVAL,millis()-pollTime);
+    }
+    else {
+        if(connected) {
+            pollTime=millis();
+            client.print("GET ");
+            client.print(path);
+            client.println(" HTTP/1.0");
+            client.print("Host: ");
+            client.println(hostname);
+            client.println("Content-Length: 0");
+            client.println();
+          	/*** DEBUG ***/
+            sprintf(debug, "connected");
+        }
+        else {
+          	/*** DEBUG ***/
+            sprintf(debug, "not connected");
+          
+            if(stop) {client.stop(); return;}
+            client.stop();
+		    response = "";
+		    if(!Particle.connected) {
+		        Particle.connect();
+		        waitFor(Particle.connected, 1000);
+		    }
+		    else {connected = client.connect(hostname, 80);}
+        }
+    
+        requestTime=millis();
+        while((client.available()==0)&&((millis()-requestTime)<RESPONSE_TIMEOUT)) {
+            if(stop) {client.stop(); return;}
+            Particle.process();    //process Spark events
+        };
+        
+        headers=TRUE;
+        lastChar='\n';
+        response="";
+    	while(client.available()>0) {
+            if(stop) {client.stop(); return;}
+    		char thisChar=client.read();
+    		if(!headers)
+    		    response.concat(String(thisChar));
+    		else {
+    			if((thisChar=='\r')&&(lastChar=='\n')) {
+        			headers=FALSE;
+        			client.read();  //kill that last \n
+    			}
+    			lastChar=thisChar;  
+    		}
+          	/*** DEBUG ***/
+            itoa(client.available(), debug, 10);
+    	}
+
+        //if there's a valid hex color string from Cheerlights, update the color
+        if(response.length()==7) {
+            //convert the hex values from the response.body string into byte values
+    		red=hexToInt(response.charAt(1))*16+hexToInt(response.charAt(2));
+    		green=hexToInt(response.charAt(3))*16+hexToInt(response.charAt(4));
+    		blue=hexToInt(response.charAt(5))*16+hexToInt(response.charAt(6));
+        	int col = strip.Color(red, green, blue);
+        	Color color=Color(red, green, blue);
+        	//actually update the color on the cube, with a cute animation
+        	 if(col != lastCol) {
+            	lastCol = col;
+        	    int which = random(0, 3);
+        	    if(stop) {client.stop(); return;}
+        	    switch(which) {
+        	        case 0:
+        	            transitionAll(color,POLAR);
+        	            break;
+        	        case 1:
+        	            colorWipe(col);
+        	            break;
+        	        case 2:
+        	            randomPixelFill(col);
+        	            break;
+        	        case 3:
+        	            
+        	            break;
+        	        case 4:
+        	            //fillZ(col);
+        	            break;
+        	    }
+        	 }
+          	/*** DEBUG ***/
+            //sprintf(debug, response);
+            
+        }
+        else {
+          	/*** DEBUG ***/
+            sprintf(debug, "no reply from host");
+          	
+            if(stop) {client.stop(); return;}
+            client.stop();
+		    response = "";
+		    if(!Particle.connected) {
+		        Particle.connect();
+		        waitFor(Particle.connected, 1000);
+		    }
+		    else {connected = client.connect(hostname, 80);}
+        }
+    }
+    //In order to allow changing the brightness at any moment
+    strip.setBrightness(brightness);
+    strip.show();
+    Particle.process();    //process Spark events
+    run = TRUE;
+}
 
 /** Convert a given hex color value (e.g., 'FF') to integer (e.g., 255)*/
 int hexToInt(char val) {
@@ -1612,8 +1825,7 @@ uint32_t getHighestValFromRGB(Color col) {
 void transitionAll(Color endColor, uint16_t method) {
     uint32_t startColor[strip.numPixels()];
     int numSteps = 8;   //This could be an input param to this function
-    if(brightnessControl) run = TRUE;
-	else run = FALSE;
+    run = FALSE;
     
     //Save the start color for each pixel - yeah, I know this is using a lot of memory, but I'm not smart enough to do it a better way
     for(int index = 0; index < strip.numPixels(); index++) {
@@ -1930,6 +2142,11 @@ int FnRouter(String command) {
 		//Update Switch flags
 		return updateAuxSwitches(id);
 	}
+	else if(command.equals("REBOOT")) {
+        resetFlag = true;
+        stop = TRUE;
+        return 1;
+    }
 	
     return -1;  
  }

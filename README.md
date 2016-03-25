@@ -9,6 +9,14 @@
 * See [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware) below for instructions on how to flash through Particle's web IDE.
 
 
+## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.7
+* Fixed Auto Sync Time Zone bug when observing DST - Daylight Savings Time. The Particle Cloud doesn’t currently support updating the time to reflect DST. The time zone offset value is now adjusted to compensate for DST so that your Particle device is always running the correct time.
+* Renamed Get Particle Variable (debug) feature to Particle Cloud Panel.
+* Added extra Debug/Tinker features in the Particle Cloud Panel.
+	- You can now send command arguments to Particle Functions. Select the function, enter your argument text and hit the "Set 		  Function" button.
+	- Added a Reboot button. Lazy and don't want to get up to hit the reset button on your Particle device? Just open the Particle 	  Cloud Panel in the app and hit the Reboot button instead. See [How to add Reboot](https://github.com/sparcules/Spark_Pixels#how-to-add-reboot-option) section below to add it to your existing code.
+
+
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.5
 * Removed the Auto Shut Off control from the settings menu. Don’t freak, see next enhancement below :)
 * Added Aux Switch Panel - used to turn things on or off or switch between two options. i.e. switch between using a light sensor or the app to set LED brightness. Turning the Auto Shut Off on or off has migrated to use this feature.
@@ -18,7 +26,7 @@
 * Enhanced the Rename Device feature.
 * Removed the (confusing) need to set the Pixel Drivers in the settings menu. 
 * The app will now auto detect your devices that are online and loaded with the Spark Pixels firmware. This happens on startup or when pressing the reload icon. Devices that are recognized as having the the correct firmware will show the Spark Pixels icon next to the device name.
-* Added Auto Sync option in the settings menu. Checking this box will Sync the Time Zone Offset captured from your Android device on startup. This is checked by default.
+* Added Auto Sync option in the settings menu. Checking this box will Sync the Time Zone Offset captured from your Android device on startup. This is enabled by default.
 
 
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.0
@@ -192,7 +200,7 @@ If you're adding the Aux Switches to you're current sketch. Find these functions
 	int FnRouter(String command)	// Update or add this one
   ```
 
-Then add these lines in *setup()*:
+Then add these lines in **setup()**:
 
   ```
 	Particle.function("Function",      FnRouter);
@@ -207,13 +215,13 @@ Then add these lines in *setup()*:
   int timeZone = TIME_ZONE_OFFSET;
   ```
     
-2. Set the Time Zone API call to the timeZone Variable in setup()
+2. Set the Time Zone API call to the timeZone Variable in **setup()**
 
   ```
   Time.zone(timeZone);  //set time zone
   ```
 
-3. Add the update code to the FnRouter cloud function
+3. Add the update code to the **FnRouter** cloud function
  
   ```
   // Set time zone offset
@@ -225,8 +233,41 @@ Then add these lines in *setup()*:
   }
   ```
 4. Make sure the Auto Sync option is checked in the settings menu in the app
-5. Enjoy never having to manually set Day Light Savings time again :)
+5. Enjoy never having to manually set Daylight Savings Time again :)
 
+
+## How to add Reboot option
+1. Declare a boolean flag near the top of your sketch.
+
+  ```
+  bool resetFlag;
+  ```
+  
+2. Initialize the variable in **setup()**
+ 
+  ```
+  resetFlag = false;
+  ```
+
+3. Look for the flag to be set in **loop()**
+
+  ```
+  if(resetFlag) {
+  	resetFlag = false;
+        delay(100); //Need this here otherwise the Cloud Function returned response is null
+        System.reset();
+  }
+  ```
+
+4. Add the trigger code to the **FnRouter** cloud function
+
+  ```
+  else if(command.equals("REBOOT")) {
+        resetFlag = true;
+        stop = TRUE;
+        return 1;
+  }
+  ```
 
 
 ## Firmware

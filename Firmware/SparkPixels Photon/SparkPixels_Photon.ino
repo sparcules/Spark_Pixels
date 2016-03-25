@@ -1,6 +1,13 @@
   /**
  ******************************************************************************
  * @file    SparkPixels.ino:
+ *      New Feature: Added REBOOT option in FnRouter. This is selectable in the app.
+ *                   In the app, Just open the Particle Cloud Panel from the menu.
+ * @author   Kevin Carlborg
+ * @version  V2.2.0
+ * @date     23-March-2016 ~ 25-March-2016
+ * 
+ * @file    SparkPixels.ino:
  *		New mode: CHEERLIGHTS, DIGI, COLORPULSE, ACIDDREAM, IFTTT WEATHER
  *		New setting: AUX Switches
  *		New Functions: transitionALl, transitionOne, transitionHelper, getTransitionStep, 
@@ -171,13 +178,13 @@ modeParams modeStruct[] =
         {  CHEERLIGHTS,     "CHEERLIGHTS",     0,      0,      FALSE  },  //credit: Werner Moecke
         {  CHRISTMASLIGHTS, "CHRISTMASLIGHTS", 0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  CHRISTMASWREATH, "CHRISTMASWREATH", 0,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  CYCLECHASER,     "CYCLECHASER",     0,      0,      FALSE  },  //credit: Kevin Carlborg
+        {  CYCLECHASER,     "CYCLE CHASER",    0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  COLLIDE,         "COLLIDE",         0,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  COLORALL,        "COLORALL",        1,      0,      FALSE  },  //credit: Neopixel Library
-        {  COLORCHASE,      "COLORCHASE",      2,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  COLORFADE,       "COLORFADE",       0,      0,      FALSE  },  //credit: Kevin Carlborg
-        {  COLORWIPE,       "COLORWIPE",       1,      0,      FALSE  },  //credit: Neopixel Library
-        {  CYCLEWIPE,       "CYCLEWIPE",       0,      0,      FALSE  },  //credit: Kevin Carlborg
+        {  COLORALL,        "COLOR ALL",       1,      0,      FALSE  },  //credit: Neopixel Library
+        {  COLORCHASE,      "COLOR CHASE",     2,      0,      FALSE  },  //credit: Kevin Carlborg
+        {  COLORFADE,       "COLOR FADE",      0,      0,      FALSE  },  //credit: Kevin Carlborg
+        {  COLORWIPE,       "COLOR WIPE",      1,      0,      FALSE  },  //credit: Neopixel Library
+        {  CYCLEWIPE,       "CYCLE WIPE",      0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  DEMO,            "DEMO",            0,      0,      FALSE  },  //credit: Kevin Carlborg
         {  DIGI,            "DIGI",            0,      2,      FALSE  },  //credit: Kevin Carlborg
         {  FLICKER,         "FLICKER",         0,      0,      FALSE  },  //credit: David Verlee
@@ -297,6 +304,7 @@ int lastModeID;
 int run;    	//Use this for modes that don't need to loop. Set the color, then stop sending commands to the pixels
 int stop;   	//Use this to break out of sequence loops when changing to a new mode
 bool firstLap;
+bool resetFlag;
 
 //Misc variables
 int speed;	//not to be confused with speedIndex below, this is the local speed (delay) value
@@ -354,18 +362,23 @@ char modeParamList[MAX_PUBLISHED_STRING_SIZE] = "None";
 char auxSwitchList[MAX_PUBLISHED_STRING_SIZE] = "None";
 char currentModeName[64] = "None";  //Holds current selected mode
 char textInputString[64];           //Holds the Text for any mode needing a test input - only useful for a Neopixel Matrix
-char debug[200];                    //We might want some debug text for development
+char debug[MAX_PUBLISHED_STRING_SIZE];                    //We might want some debug text for development
    
 /* ======================= mode Specific Defines ======================= */
 //ZONE mode Start and End Pixels
 int zone1Start = 0;
 int zone1End   = 59;
-int zone2Start = zone1End + 1;
+int zone2Start = 60;
 int zone2End   = 141;
-int zone3Start = zone2End + 1;
+int zone3Start = 142;
 int zone3End   = 219;
-int zone4Start = zone3End + 1;
-int zone4End   = PIXEL_CNT - 1;
+int zone4Start = 220;
+int zone4End   = 267;
+
+//CHASER mode specific Start and End Pixels, re-use some from ZONE mode
+int ChaserZone3Section1End   = 177;
+int chaserZone3Section2Start = 189;
+#define CHASER_LENGTH   256
 
 //Color Defines
 #define RED   0xFF0000
@@ -501,15 +514,16 @@ void setup() {
     run = false;
     stop = false;
     autoShutOff = false;
-	//setNewMode(getModeIndexFromID(NORMAL));
-	setNewMode(getModeIndexFromID(OFF));
+    resetFlag = false;
+	setNewMode(getModeIndexFromID(NORMAL));
+	//setNewMode(getModeIndexFromID(OFF));
 	defaultColor = strip.Color(255,255,60);  // This seems close to incandescent color 
 	lastSync = lastCommandReceived = previousMillis = millis();	//Take a time stamp
     c1 = Wheel(random(random(2, 256), random(2, 256)));
     c2 = Wheel(random(random(2, 256), random(2, 256)));
 
 	strip.begin();     			//Start up the Neopixels     	
-   // colorAll(defaultColor);     //Turn on the NORMAL Mode
+    colorAll(defaultColor);     //Turn on the NORMAL Mode
     transitionAll(getColorFromInteger(defaultColor),LINEAR);
     Particle.connect();         //Now connect to the cloud
     Time.zone(timeZone);  //set time zone 
@@ -529,6 +543,7 @@ void setup() {
 	getTemperature();
     tHour = Time.hour();	//used to check for correct time zone
     iwifi = WiFi.RSSI();    //Sometime I want to see how good the wifi signal is
+
 }
 
 void makeModeList(void) {
@@ -682,6 +697,11 @@ void loop() {
         }
     }
     
+    if(resetFlag) {
+        resetFlag = false;
+        delay(100); //Need this here otherwise the Cloud Function returned response is null
+        System.reset();
+    }
     unsigned long currentMillis = millis();
  
  //sprintf(debug,"ASO %i",(int)auxSwitchStruct[getAuxSwitchIndexFromID(ASO)].auxSwitchState);
@@ -1042,32 +1062,69 @@ void iftttWeather(uint32_t c) {
     	    
 //Turn off all pixels then run a single color down the strip 
 //One pixel at a time
+
 int colorChaser(uint32_t c) {
     uint16_t i;
     run = FALSE;
     
     //Turn Off all pixels
-    transitionAll(black,LINEAR);
+    for(i=0; i<strip.numPixels(); i++) {
+        strip.setPixelColor(i, 0);
+    }
+    strip.show();
 
-	//Forward
-	for(i=0; i<PIXEL_CNT; i++) {
-		strip.setPixelColor(i, c);
-		if(i > 0) {
-			strip.setPixelColor(i-1, 0);
-		}
-		showPixels();
-		if(stop == TRUE) {return 0;}
+    //Forward
+    for(i=zone1Start; i<=ChaserZone3Section1End; i++) {
+        strip.setPixelColor(i, c);
+        if(i > zone1Start) {
+            strip.setPixelColor(i-1, 0);
+        }
+        showPixels();
+        if(stop == TRUE) {return 0;}
 		delay(speed);
-	}
-
-	//Reverse
-	for(i=PIXEL_CNT-1; i>=0; i--) {
-		strip.setPixelColor(i, c);
-		strip.setPixelColor(i+1, 0);
-		showPixels();
-		if(stop == TRUE) {return 0;}
+    }
+    strip.setPixelColor(ChaserZone3Section1End, 0);
+    for(i=zone4Start; i<=zone4End; i++) {
+        strip.setPixelColor(i, c);
+        strip.setPixelColor(i-1, 0);
+        showPixels();
+        if(stop == TRUE) {return 0;}
 		delay(speed);
-	}
+    }
+    strip.setPixelColor(zone4End, 0);
+    for(i=chaserZone3Section2Start; i<=zone3End; i++) {
+        strip.setPixelColor(i, c);
+        strip.setPixelColor(i-1, 0);
+        showPixels();
+        if(stop == TRUE) {return 0;}
+		delay(speed);
+    }
+	
+    //Reverse
+    strip.setPixelColor(zone3End, 0);
+	for(i=zone3End-1; i>=chaserZone3Section2Start; i--) {
+        strip.setPixelColor(i, c);
+        strip.setPixelColor(i+1, 0);
+        showPixels();
+        if(stop == TRUE) {return 0;}
+		delay(speed);
+    }
+    strip.setPixelColor(chaserZone3Section2Start, 0);
+    for(i=zone4End; i>=zone4Start; i--) {
+        strip.setPixelColor(i, c);
+        strip.setPixelColor(i+1, 0);
+        showPixels();
+        if(stop == TRUE) {return 0;}
+		delay(speed);
+    }
+    strip.setPixelColor(zone4Start, 0);
+    for(i=ChaserZone3Section1End; i>zone1Start; i--) {
+        strip.setPixelColor(i, c);
+        strip.setPixelColor(i+1, 0);
+        showPixels();
+        if(stop == TRUE) {return 0;}
+		delay(speed);
+    }
     return 1;
 }
 
@@ -1397,7 +1454,7 @@ void cheerlights(void) {
             Particle.process();
             delay(100);
 	    }
-	    sprintf(debug, "pollinterval:%i, polltime:%i",POLLING_INTERVAL,millis()-pollTime);
+	    //sprintf(debug, "pollinterval:%i, polltime:%i",POLLING_INTERVAL,millis()-pollTime);
     }
     else {
         if(connected) {
@@ -1410,11 +1467,11 @@ void cheerlights(void) {
             client.println("Content-Length: 0");
             client.println();
           	/*** DEBUG ***/
-            sprintf(debug, "connected");
+            //sprintf(debug, "connected");
         }
         else {
           	/*** DEBUG ***/
-            sprintf(debug, "not connected");
+            //sprintf(debug, "not connected");
           
             if(stop) {client.stop(); return;}
             client.stop();
@@ -1448,7 +1505,7 @@ void cheerlights(void) {
     			lastChar=thisChar;  
     		}
           	/*** DEBUG ***/
-            itoa(client.available(), debug, 10);
+            //itoa(client.available(), debug, 10);
     	}
 
         //if there's a valid hex color string from Cheerlights, update the color
@@ -1488,7 +1545,7 @@ void cheerlights(void) {
         }
         else {
           	/*** DEBUG ***/
-            sprintf(debug, "no reply from host");
+           //sprintf(debug, "no reply from host");
           	
             if(stop) {client.stop(); return;}
             client.stop();
@@ -1972,7 +2029,7 @@ int SetMode(String command) {
     //keep track or the last command received for the auto off feature
     lastCommandReceived = millis();
     
-    sprintf(debug,"%s", command.c_str());
+//    sprintf(debug,"%s", command.c_str());
 
 	while(idx != -1) {
 		if(command.charAt(beginIdx) == 'M') {   //Mode name
@@ -2095,7 +2152,7 @@ int FnRouter(String command) {
     int beginIdx = 0;
 	int colonIdx = command.indexOf(':');
 	
-    // Set time zone offset
+	// Set time zone offset
     if(command.substring(beginIdx, colonIdx)=="SETTIMEZONE") {
 		//Expect a string like this: SETTIMEZONE:-6
         timeZone = command.substring(colonIdx+1).toInt();
@@ -2126,7 +2183,12 @@ int FnRouter(String command) {
 		//Update Switch flags
 		return updateAuxSwitches(id);
 	}
-	
+	else if(command.equals("REBOOT")) {
+        resetFlag = true;
+        stop = TRUE;
+        return 1;
+    }
+    
     return -1;  
  }
  
@@ -2134,6 +2196,7 @@ int FnRouter(String command) {
 //Change Mode based on the modeStruct array index
 int setNewMode(int newModeIndex) {
     lastModeID = currentModeID;
+    if(newModeIndex < 0) newModeIndex = 0;
     currentModeID = modeStruct[newModeIndex].modeId;
     sprintf(currentModeName,"%s", modeStruct[newModeIndex].modeName);
     resetVariables(modeStruct[newModeIndex].modeId);

@@ -271,12 +271,14 @@ Then add these lines in **setup()**:
 
 
 ## Firmware
-All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;*. -Always end with a semicolon
+All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;* - Always end with a semicolon.
+
 modeParmList Key:
-    * N - NULL, no extra parameters are needed for this mode
-    * C:# - Number of Colors, # = 1-6
-    * S:# - Number of Switches, # = 1-4
-    * T:  - A Text Input is required
+* N - NULL, no extra parameters are needed for this mode
+* C:# - Number of Colors, # = 1-6
+* S:# - Number of Switches, # = 1-4
+* T:  - A Text Input is required
+    
 The modeList String is assembled semicolon delimited to match that of the modeParmList String. modeList only contains the mode name titles. i.e. - *OFF;NORMAL;COLORALL;ZONE;SPECTRUM;MESSAGE;* Every indexed position in modeList will have a corresponding entry in modeParmList.
 Feel free to remove any modes you don't care to have. You can simply comment out the line for the mode in the **modeStruct[]** array.
 

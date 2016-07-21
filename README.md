@@ -5,22 +5,22 @@ Do you like Spark Pixels? Consider donating.
 <img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and firmware. You will need an Android device, a Spark Core or Particle Photon, and a strip of Neopixels. Spark Pixels is expandable. The app and firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash your Particle device. The Android app reads in the list of available modes from the device every time the app is launched. The Android app code should never need to be updated
 
 ## Outline
-* [What firmware do I use?](https://github.com/sparcules/Spark_Pixels#What-firmware-do-I-use?)
-* [Community](https://github.com/sparcules/Spark_Pixels#Community)
-* [Usage](https://github.com/sparcules/Spark_Pixels#Usage)
-* [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#Flashing-the-Firmware)
-* [Adding a new Mode to the Firmware](https://github.com/sparcules/Spark_Pixels#Adding-a-new-Mode-to-the-Firmware)
-* [Adding a new Aux Switch to the Firmware](https://github.com/sparcules/Spark_Pixels#Adding-a-new-Aux-Switch-to-the-Firmware)
-* [Adding Time Zone Sync feature to the Firmware](https://github.com/sparcules/Spark_Pixels#Adding-Time-Zone-Sync-feature-to-the-Firmware)
-* [How to add Reboot option](https://github.com/sparcules/Spark_Pixels#How-to-add-Reboot-option)
-* [Firmware](https://github.com/sparcules/Spark_Pixels#Firmware)
-* [Limitations](https://github.com/sparcules/Spark_Pixels#Limitations)
-* [Android App](https://github.com/sparcules/Spark_Pixels#Android App)
-* [Android App Building](https://github.com/sparcules/Spark_Pixels#Android App Building)
-* [Android App Requires TI SmartConfig Library](https://github.com/sparcules/Spark_Pixels#Android-App-Requires-TI-SmartConfig-Library)
-* [Key Classes](https://github.com/sparcules/Spark_Pixels#Key-Classes)
-* [Hardware Implementation](https://github.com/sparcules/Spark_Pixels#[Hardware-Implementation)
-* [Open Source Licenses](https://github.com/sparcules/Spark_Pixels#Open-Source-Licenses)
+* [What firmware do I use?](https://github.com/sparcules/Spark_Pixels#what-firmware-do-I-use)
+* [Community](https://github.com/sparcules/Spark_Pixels#community)
+* [Usage](https://github.com/sparcules/Spark_Pixels#usage)
+* [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware)
+* [Adding a new Mode to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-a-new-mode-to-the-firmware)
+* [Adding a new Aux Switch to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-a-new-aux-switch-to-the-firmware)
+* [Adding Time Zone Sync feature to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-time-zone-sync-feature-to-the-firmware)
+* [How to add Reboot option](https://github.com/sparcules/Spark_Pixels#how-to-add-reboot-option)
+* [Firmware](https://github.com/sparcules/Spark_Pixels#firmware)
+* [Limitations](https://github.com/sparcules/Spark_Pixels#limitations)
+* [Android App](https://github.com/sparcules/Spark_Pixels#android-app)
+* [Android App Building](https://github.com/sparcules/Spark_Pixels#android-app-building)
+* [Android App Requires TI SmartConfig Library](https://github.com/sparcules/Spark_Pixels#android-app-requires-ti-smartconfig-library)
+* [Key Classes](https://github.com/sparcules/Spark_Pixels#key-classes)
+* [Hardware Implementation](https://github.com/sparcules/Spark_Pixels#[hardware-implementation)
+* [Open Source Licenses](https://github.com/sparcules/Spark_Pixels#open-source-licenses)
 
 ## What firmware do I use?
 * For single strip or Neopixel rings, get the [firmware here](https://github.com/sparcules/Spark_Pixels/tree/master/Firmware).

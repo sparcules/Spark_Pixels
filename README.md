@@ -239,6 +239,8 @@ Then add these lines in **setup()**:
 
 
 ## How to add Reboot option
+<img src="Pics/reboot.png" width="25%" height="25%">
+
 1. Declare a boolean flag near the top of your sketch.
 
   ```

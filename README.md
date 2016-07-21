@@ -5,12 +5,12 @@ Do you like Spark Pixels? Consider donating.
 <img align="left" src="Pics/ic_launcher-web.png" width="22%" height="22%" hspace="15" style="float: left">Another Neopixel project controlled by the Spark Core from [Particle devices](http://docs.particle.io/) (formerly Spark). This repository contains the source code for the Spark Pixels Android App and firmware. You will need an Android device, a Spark Core or Particle Photon, and a strip of Neopixels. Spark Pixels is expandable. The app and firmware have been designed so that if you want to add a new LED sequence (aka mode) for your Neopixels, you only have to re-flash your Particle device. The Android app reads in the list of available modes from the device every time the app is launched. The Android app code should never need to be updated
 
 ## Outline
-* [What firmware do I use?](https://github.com/sparcules/Spark_Pixels#what-firmware-do-I-use)
+* [What firmware do I use?](https://github.com/sparcules/Spark_Pixels#what-firmware-do-i-use)
 * [Community](https://github.com/sparcules/Spark_Pixels#community)
 * [Usage](https://github.com/sparcules/Spark_Pixels#usage)
 * [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware)
 * [Adding a new Mode to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-a-new-mode-to-the-firmware)
-* [Adding a new Aux Switch to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-a-new-aux-switch-to-the-firmware)
+* [Adding an Aux Switch to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-an-aux-switch-to-the-firmware)
 * [Adding Time Zone Sync feature to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-time-zone-sync-feature-to-the-firmware)
 * [How to add Reboot option](https://github.com/sparcules/Spark_Pixels#how-to-add-reboot-option)
 * [Firmware](https://github.com/sparcules/Spark_Pixels#firmware)
@@ -19,7 +19,7 @@ Do you like Spark Pixels? Consider donating.
 * [Android App Building](https://github.com/sparcules/Spark_Pixels#android-app-building)
 * [Android App Requires TI SmartConfig Library](https://github.com/sparcules/Spark_Pixels#android-app-requires-ti-smartconfig-library)
 * [Key Classes](https://github.com/sparcules/Spark_Pixels#key-classes)
-* [Hardware Implementation](https://github.com/sparcules/Spark_Pixels#[hardware-implementation)
+* [Hardware Implementation](https://github.com/sparcules/Spark_Pixels#hardware-implementation)
 * [Open Source Licenses](https://github.com/sparcules/Spark_Pixels#open-source-licenses)
 
 ## What firmware do I use?
@@ -161,7 +161,7 @@ Global variables controlled by the app:
 * textInputString - Used to display text on Neopixel grids
 
 
-## Adding a new Aux Switch to the Firmware
+## Adding an Aux Switch to the Firmware
 <img src="Pics/aux_switch_panel_2.png" width="25%" height="25%">
 
 1. Aux Switches is your tool to turn things On or Off or to toggle between two different options. By default, the Auto Shut Off (ASO) feature has migrated to use a Aux Switch.
@@ -318,6 +318,7 @@ Spark String Variables have a max length of 622 bytes. This will limit the numbe
 
 
 ## Android App
+<img align="left" src="Pics/SparkPixelsView1.png" width="22%" height="22%" hspace="15" style="float: left">
 The app has been developed in Eclipse. The app is based off of the Spark Core App Thermostat: SCAT (https://github.com/RolfHut/ThermosApp) which is heavily based on the official Spark app for android. The source code for that app can be found at https://github.com/spark/android-app. The whole view has been revamped to control the Neopixel brightness, speed and mode. Upon loading the app view, the app acquires these Spark Variables from the Core: brightness, speed and a comma delimited String called modeList. Once acquired, the brightness and speed slider bars are updated per the current Spark Core values. The modeList String is parsed out to populate a list view to display all of the available modes programmed into the Core. The modeList String also holds the number of colors each mode needs to run. Some modes need 1 color to operate, some modes need more, some modes need none. The user will select the desired color from a color picker dialog in the app. 
 
 I have a temperature sensor inside my project box that houses the Spark Core and the +5V power supply. The temp reading can be displayed in the app view. The temperature reading view can be turned on or off in the settings found in the app menu.

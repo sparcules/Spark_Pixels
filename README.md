@@ -142,6 +142,8 @@ Global variables controlled by the app:
 
 
 ## Adding a new Aux Switch to the Firmware
+<img src="Pics/aux_switch_panel_2.png" width="25%" height="25%">
+
 1. Aux Switches is your tool to turn things On or Off or to toggle between two different options. By default, the Auto Shut Off (ASO) feature has migrated to use a Aux Switch.
 2. Create an ID name for your Aux Switch and add it to the list under *AUX SWITCH ID Defines*. 
 

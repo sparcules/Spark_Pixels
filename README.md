@@ -83,6 +83,7 @@ https://www.facebook.com/Spark-Pixels-1716703048549907/timeline/
 6. If you have more than one Particle device it is recommended to navigate to the settings menu and select the **Default Driver**. The app will auto-open this device on startup. This allows for a faster start up. 
 7. Enjoy controlling your Neopixels from your Android device.
 
+Alternatively, check out this [video](https://vimeo.com/169198269) from Looking Glass that shows how to configure Spark Pixels with the L3D Cube.
 
 ## Flashing the Firmware
 1. Go to the Particle web IDE (https://build.particle.io/build/) 

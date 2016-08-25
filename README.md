@@ -29,6 +29,13 @@ Do you like Spark Pixels? Consider donating.
 * See [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware) below for instructions on how to flash through Particle's web IDE.
 
 
+## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.9
+* Bug fix for Android 4.0.3.
+* Link Devices - If you have more than one Particle device running Spark Pixels, you can link them together allowing you to control them at the same time. The commands are sent sequentially (not simultaneously) so expect a slight delay. 
+* Unclaim a device.
+* Device Info - Get Device ID, IP Address, Local IP Address, WiFi Strength, Firmware Rev, Particle Build Version, Current Time on Device, etc. Customize what you want in the sketch. The app gives you the ability to copy each value to the clipboard of your Android device. See [How to add Device Info](https://github.com/sparcules/Spark_Pixels#how-to-add-device-info) section below to add it to your existing code.
+ 
+
 ## What's New in [Spark Pixels](https://play.google.com/store/apps/details?id=kc.spark.pixels.android) v0.2.7
 * Fixed Auto Sync Time Zone bug when observing DST - Daylight Savings Time. The Particle Cloud doesn’t currently support updating the time to reflect DST. The time zone offset value is now adjusted to compensate for DST so that your Particle device is always running the correct time.
 * Renamed Get Particle Variable (debug) feature to Particle Cloud Panel.
@@ -295,6 +302,126 @@ Then add these lines in **setup()**:
   ```
 
 
+## How to add Device Info
+
+Selecting <img src="Pics/device_info_menu.png" width="12%" height="12%"> from the menu will open this panel.
+
+<img src="Pics/device_info.png" width="22%" height="22%">
+
+Follow these steps to add Device Info to your existing code:
+
+1. Declare some defines at the top of your sketch.
+
+  ```
+  #define BUILD_FILE_NAME             "Spark Pixels"
+  #define BUILD_REVISION              "2.2.2"
+  ```
+  
+2. Declare the Particle Cloud String
+ 
+  ```
+  char deviceInfo[MAX_PUBLISHED_STRING_SIZE] = "";
+  ```
+
+3. Let Particle know about the new Cloud Variable in the **setup()** routine
+
+  ```
+  Particle.variable("deviceInfo",    deviceInfo); 
+  ```
+
+4. Make a call to the makeDeviceInfo() funtion to compile the Cloud Variable (in **setup()**)
+
+  ```
+    makeModeList();
+    makeAuxSwitchList();
+    makeDeviceInfo();		//Add this after makeAuxSwitchList();
+  ```
+  
+5. Add the makeDeviceInfo() function.
+	You can add or subtract from this list. Just be sure to keep the format of: *info_name:"info_value",*  
+	That's: *info_name - colon - parenthesis - info_value - parenthesis - comma* (of course, no spaces and no dashes)
+
+  ```
+    void makeDeviceInfo(void) {
+		char cBuff[60];
+		
+		IPAddress myIp = WiFi.localIP();
+		sprintf(deviceInfo,"Local IP Address:\"%d.%d.%d.%d\",",myIp[0], myIp[1], myIp[2], myIp[3]);
+
+		sprintf(cBuff,"SSID:\"%s\",",WiFi.SSID());
+		strcat(deviceInfo,cBuff);
+
+		sprintf(cBuff,"WiFi Strength:\"%i\",",WiFi.RSSI());
+		strcat(deviceInfo,cBuff);
+
+		sprintf(cBuff,"Firmware ID:\"%s\",",BUILD_FILE_NAME);
+		strcat(deviceInfo,cBuff);
+		
+		sprintf(cBuff,"Firmware Rev:\"%s\",",BUILD_REVISION);
+		strcat(deviceInfo,cBuff);
+			
+		sprintf(cBuff,"Particle Build Version:\"%s\",",System.version().c_str());
+		strcat(deviceInfo,cBuff);
+		
+		sprintf(cBuff,"Free Memory (bytes):\"%i\",",System.freeMemory());
+		strcat(deviceInfo,cBuff);
+		
+		sprintf(cBuff,"Current Time On Device:\"%i:%i:%i %s %s %i %i\",",Time.hour(),Time.minute(),Time.second(),getWeekDay(),getMonth(),Time.day(),Time.year());
+		//sprintf(cBuff,"Current Time On Device:\"%s\",",Time.timeStr().c_str());
+		strcat(deviceInfo,cBuff);
+	}
+  ```
+  
+6. If you want to report the Current Time On Device in a format other than Particle's *Time.timeStr()* format i.e. *Wed May 21 01:08:47 2014*, add the following functions.
+ 
+  ```
+    char* getWeekDay(void) {
+		int weekDay = Time.weekday();   
+		
+		switch(weekDay) {
+			case 1: return "Sun";
+			case 2: return "Mon";
+			case 3: return "Tue";
+			case 4: return "Wed";
+			case 5: return "Thu";
+			case 6: return "Fri";
+			case 7: return "Sat";
+		}
+		
+		return "Not Found";
+	}
+
+	char* getMonth(void) {
+		int month = Time.month();
+		
+		switch(month) {
+			case 1: return "Jan";
+			case 2: return "Feb";
+			case 3: return "Mar";
+			case 4: return "Apr";
+			case 5: return "May";
+			case 6: return "Jun";
+			case 7: return "Jul";
+			case 8: return "Aug";
+			case 9: return "Sep";
+			case 10: return "Oct";
+			case 11: return "Nov";
+			case 12: return "Dec";
+		}
+	}
+
+  ```
+  
+7. Finally, to keep things like WiFi strength and Current Time up to date, add a call to makeDeviceInfo() every 10 seconds or so in **loop()**
+ 
+  ```
+  
+   if(currentMillis - previousMillis > 10000) {
+        previousMillis = currentMillis;
+        makeDeviceInfo();	//Keep up to date with my Device Info
+  ```  
+  
+  
 ## Firmware
 All the mode information is defined in the **modeStruct[]** and **switchTitleStruct** arrays. The setup routine calls makeModeList() that assembles all the info into Particle CLoud String Variables **modeList** and **modeParmList**. Yes, I know there is an 'a' missing from Param, Particle cloud names can only be up to 12 characters in length. The parameter info is assembled semicolon delimited. i.e. the modeParmList String would start out like this: *N;N;C:1;C:4;C:1,S:2,"Smooth""Peaks";C:1,T:;* - Always end with a semicolon.
 

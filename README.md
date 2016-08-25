@@ -308,7 +308,7 @@ Selecting <img src="Pics/device_info_menu.png" width="12%" height="12%"> from th
 
 <img src="Pics/device_info.png" width="22%" height="22%">
 
-Follow these steps to add Device Info to your existing code:
+Follow these steps to add the Device Info option to your existing code:
 
 1. Declare some defines at the top of your sketch.
 

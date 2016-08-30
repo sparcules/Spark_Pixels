@@ -13,6 +13,7 @@ Do you like Spark Pixels? Consider donating.
 * [Adding an Aux Switch to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-an-aux-switch-to-the-firmware)
 * [Adding Time Zone Sync feature to the Firmware](https://github.com/sparcules/Spark_Pixels#adding-time-zone-sync-feature-to-the-firmware)
 * [How to add Reboot option](https://github.com/sparcules/Spark_Pixels#how-to-add-reboot-option)
+* [How to add Device Info](https://github.com/sparcules/Spark_Pixels#how-to-add-device-info)
 * [Firmware](https://github.com/sparcules/Spark_Pixels#firmware)
 * [Limitations](https://github.com/sparcules/Spark_Pixels#limitations)
 * [Android App](https://github.com/sparcules/Spark_Pixels#android-app)

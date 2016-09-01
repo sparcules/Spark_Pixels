@@ -1,9 +1,45 @@
   /**
  ******************************************************************************
  * @file    SparkPixels.ino:
+ * @author   Kevin Carlborg
+ * @version  V2.2.2
+ * @date     June-2016
+ *      New Feature: Added deviceInfo Particle Cloud String - this info will be displayed
+ *                   in the Spark Pixels app starting version 0.2.9.
+ * 
+ * @file    SparkPixels.ino:
+ * @author   Kevin Carlborg
+ * @version  V2.2.1
+ * @date     23-March-2016 ~ 25-March-2016
+ *      New Feature: Added deviceInfo Particle Cloud String
+ * 
+ * @file    SparkPixels.ino:
+ *		New mode: CHEERLIGHTS, DIGI, COLORPULSE, ACIDDREAM, IFTTT WEATHER
+ *		New setting: AUX Switches
+ *		New Functions: transitionALl, transitionOne, transitionHelper, getTransitionStep, 
+ *                     clamp, updateAuxSwitches, getAuxSwitchIndexFromID, makeAuxSwitchList,
+ *                     resetVariables, hexToInt, randomPixelFill, getColorFromInteger, 
+ *                     getHighestValFromRGB, lerpColor, randomPixelFill, cheerlights, 
+ *                     iftttWeather
+ *      Updated Cloud Function: Renamed the local "cloud" function *Function* to *FnRouter*
+ *      New Feature: Added AUX Switches used to turn things on or off or switch between two 
+ *                   options, i.e. switch between using a light sensor or the app to set 
+ *                   LED brightness. The Auto Shut Off has migrated to use this function.
+ *      New Funtion Description:
+ *                   IFTTT WEATHER - search for the Spark Pixels recipe on ifttt.com or
+ *                      create your own. Just setup your device to call the SetMode 
+ *                      function with this input: M:IFTTT WEATHER,C6:0000FF,
+ *                      Where 0000FF is the hex value for blue. Color must be in hex format
+ *                      Oh, and Don't forget the ending comma,
+ *                   CHEERLIGHTS - go to http://cheerlights.com/ 
+ * @author   Kevin Carlborg
+ * @version  V2.1.0
+ * @date     01-Januray-2016 ~ 7-March-2016
+ * 
+ * @file    SparkPixels.ino:
  *      New Feature: Added REBOOT option in FnRouter. This is selectable in the app.
  *                   In the app, Just open the Particle Cloud Panel from the menu.
- * @author   Kevin Carlborg
+ *  * @author   Kevin Carlborg
  * @version  V2.2.0
  * @date     23-March-2016 ~ 25-March-2016
  * 
@@ -91,13 +127,15 @@
 #include "math.h"
 
 //Global Defines
+#define BUILD_FILE_NAME             "Spark Pixles"
+#define BUILD_REVISION              "2.2.0"
 #define MAX_PUBLISHED_STRING_SIZE   622     //defined by Particle Industries
 #define GET_TEMP_ENABLED            FALSE   //Should we measure a temp sensor?
-#define TIME_ZONE_OFFSET	        -6		//The offset to set your region's time correctly
+#define TIME_ZONE_OFFSET	        0		//The offset to set your region's time correctly  -6
 #define CLAMP_255(v) (v > 255 ? 255 : (v < 0 ? 0 : v))
 
 //NEOPIXEL Defines
-#define PIXEL_CNT 268
+#define PIXEL_CNT 353 //268
 #define PIXEL_PIN D7
 #define PIXEL_TYPE WS2812B
 
@@ -352,7 +390,7 @@ const int TEMP_SENSOR_PIN = A7;   //TMP36 sensor on this pin.
 const int LIGHT_SENSOR_PIN = A6;  //Photo Resistor
 
 //Spark Cloud Variables
-int iwifi = 0;   //used for general info and setup
+int wifi = 0;   //used for general info and setup
 int tHour=0;    //used for general info and setup
 int speedIndex;     				//Let the cloud know what speed preset we are using
 int brightness;                     //How bright do we want these things anyway
@@ -360,6 +398,7 @@ double measuredTemperature = 0.0;   //Let's see how hot our project box is getti
 char modeNameList[MAX_PUBLISHED_STRING_SIZE] = "None";        //Holds all mode info comma delimited. Use this to populate the android app
 char modeParamList[MAX_PUBLISHED_STRING_SIZE] = "None";
 char auxSwitchList[MAX_PUBLISHED_STRING_SIZE] = "None";
+char deviceInfo[MAX_PUBLISHED_STRING_SIZE] = "";
 char currentModeName[64] = "None";  //Holds current selected mode
 char textInputString[64];           //Holds the Text for any mode needing a test input - only useful for a Neopixel Matrix
 char debug[MAX_PUBLISHED_STRING_SIZE];                    //We might want some debug text for development
@@ -484,7 +523,7 @@ void setup() {
     Particle.function("Function",      FnRouter);           // Completely Necessary, Do Not Delete
 
     Particle.variable("debug",         debug);              // Completely Necessary, Do Not Delete
-    Particle.variable("wifi",          iwifi);              // Expendable
+    Particle.variable("wifi",          wifi);              // Expendable
     Particle.variable("hour",          tHour);              // Expendable   
     Particle.variable("speed",         speedIndex);         // Completely Necessary, Do Not Delete
     Particle.variable("brightness",    brightness);         // Completely Necessary, Do Not Delete
@@ -493,6 +532,7 @@ void setup() {
 	Particle.variable("modeParmList",  modeParamList);      // Completely Necessary, Do Not Delete
 	Particle.variable("mode",          currentModeName);    // Completely Necessary, Do Not Delete
 	Particle.variable("auxSwtchList",  auxSwitchList);      // Completely Necessary, Do Not Delete
+	Particle.variable("deviceInfo",    deviceInfo);         // Completely Necessary, Do Not Delete
    
     
     pinMode(TEMP_SENSOR_PIN,INPUT);
@@ -533,17 +573,81 @@ void setup() {
 	sprintf(modeParamList,"");
     sprintf(auxSwitchList,"");
 
+	getTemperature();
+    tHour = Time.hour();	//used to check for correct time zone
+    wifi = WiFi.RSSI();    //Sometime I want to see how good the wifi signal is
+    
     //Assemble Spark Cloud available modes variable
     makeModeList();
     makeAuxSwitchList();
+    makeDeviceInfo();
     
    // WiFi.selectAntenna(ANT_EXTERNAL);
    // WiFi.selectAntenna(ANT_AUTO);
-    
-	getTemperature();
-    tHour = Time.hour();	//used to check for correct time zone
-    iwifi = WiFi.RSSI();    //Sometime I want to see how good the wifi signal is
+}
 
+void makeDeviceInfo(void) {
+    char cBuff[60];
+    
+    IPAddress myIp = WiFi.localIP();
+    sprintf(deviceInfo,"Local IP Address:\"%d.%d.%d.%d\",",myIp[0], myIp[1], myIp[2], myIp[3]);
+
+    sprintf(cBuff,"SSID:\"%s\",",WiFi.SSID());
+    strcat(deviceInfo,cBuff);
+
+    sprintf(cBuff,"WiFi Strength:\"%i\",",wifi);
+    strcat(deviceInfo,cBuff);
+
+    sprintf(cBuff,"Firmware ID:\"%s\",",BUILD_FILE_NAME);
+    strcat(deviceInfo,cBuff);
+    
+    sprintf(cBuff,"Firmware Rev:\"%s\",",BUILD_REVISION);
+    strcat(deviceInfo,cBuff);
+        
+    sprintf(cBuff,"Particle Build Version:\"%s\",",System.version().c_str());
+    strcat(deviceInfo,cBuff);
+    
+    sprintf(cBuff,"Free Memory (bytes):\"%i\",",System.freeMemory());
+    strcat(deviceInfo,cBuff);
+    
+    sprintf(cBuff,"Current Time On Device:\"%i:%i:%i %s %s %i %i\",",Time.hour(),Time.minute(),Time.second(),getWeekDay(),getMonth(),Time.day(),Time.year());
+    //sprintf(cBuff,"Current Time On Device:\"%s\",",Time.timeStr().c_str());
+    strcat(deviceInfo,cBuff);
+}
+
+char* getWeekDay(void) {
+    int weekDay = Time.weekday();   
+    
+    switch(weekDay) {
+        case 1: return "Sun";
+        case 2: return "Mon";
+        case 3: return "Tue";
+        case 4: return "Wed";
+        case 5: return "Thu";
+        case 6: return "Fri";
+        case 7: return "Sat";
+    }
+    
+    return "Not Found";
+}
+
+char* getMonth(void) {
+    int month = Time.month();
+    
+    switch(month) {
+        case 1: return "Jan";
+        case 2: return "Feb";
+        case 3: return "Mar";
+        case 4: return "Apr";
+        case 5: return "May";
+        case 6: return "Jun";
+        case 7: return "Jul";
+        case 8: return "Aug";
+        case 9: return "Sep";
+        case 10: return "Oct";
+        case 11: return "Nov";
+        case 12: return "Dec";
+    }
 }
 
 void makeModeList(void) {
@@ -699,7 +803,7 @@ void loop() {
     
     if(resetFlag) {
         resetFlag = false;
-        delay(100); //Need this here otherwise the Cloud Function returned response is null
+        delay(200); //Need this here otherwise the Cloud Function returned response is null
         System.reset();
     }
     unsigned long currentMillis = millis();
@@ -709,7 +813,8 @@ void loop() {
     if(currentMillis - previousMillis > 10000) {
         previousMillis = currentMillis;
         tHour = Time.hour();
-        iwifi = WiFi.RSSI(); 
+        wifi = WiFi.RSSI(); 
+        makeDeviceInfo();  	//Keep up to date with my Device Info
 
         if(GET_TEMP_ENABLED) {
             getTemperature();

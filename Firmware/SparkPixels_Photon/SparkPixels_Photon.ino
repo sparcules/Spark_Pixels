@@ -2,6 +2,12 @@
  ******************************************************************************
  * @file     SparkPixels.ino:
  * @author   Kevin Carlborg
+ * @version  V2.3.1
+ * @date     Augudy-2017
+ *           Fixed compile error with PI
+ * 
+ * @file     SparkPixels.ino:
+ * @author   Kevin Carlborg
  * @version  V2.3
  * @date     November-2016
  *      New Mode: Just in time for Christmas. Ported over LedStripXmas from pololu.com
@@ -135,11 +141,15 @@
 
 //Global Defines
 #define BUILD_FILE_NAME             "Spark Pixels"
-#define BUILD_REVISION              "2.2.0.a"
+#define BUILD_REVISION              "2.3.1"
 #define MAX_PUBLISHED_STRING_SIZE   622    //defined by Particle Industries
 #define GET_TEMP_ENABLED            FALSE   //Should we measure a temp sensor?
 #define TIME_ZONE_OFFSET	        -5		//The offset to set your region's time correctly  -6
 #define CLAMP_255(v) (v > 255 ? 255 : (v < 0 ? 0 : v))
+
+#ifndef PI
+#define PI  3.1415926535
+#endif
 
 //NEOPIXEL Defines
 #define PIXEL_CNT 268 //268  //353 total
@@ -338,7 +348,6 @@ const double MINFANTEMP = 100.0;  //Min Temp to turn fan on low speed in Deg Fah
 const double MAXFANTEMP = 115.0;  //Max Temp to turn fan on max speed in Deg Fahrenheit
 const double MAXTEMP = 140.0;     //Shut Off Temp in Deg Fahrenheit
 
-const float PI = 3.1415926535;
 
 //Time Interval constants          hh*mm*ss*ms    
 unsigned long oneMinuteInterval =      1*60*1000;	//Read temp every minute
@@ -3389,4 +3398,3 @@ int getAuxSwitchIndexFromID(int id) {
     }
     return -1;
 }
-

@@ -1,3 +1,29 @@
+/* @file     SparkPixels_FastLED.ino
+ * @authors  Kevin Carlborg
+ * @version  V0.1
+ * @date     06-September-2017
+ * @brief    Neopixel strip Powered by the Particle Photon and the FastLED Library 
+ *           Modes are toggeled by the Spark Pixels Android app
+ *
+ * @extended DemoReel100.ino from FASTLED Library
+ * @functions: rainbow,confetti,sinelon,bpn,juggle
+ * @author   Mark Kriegsman
+ * @version  NA
+ * @date     December 2014
+ ******************************************************************************
+ Copyright (c) 2015 Kevin Carlborg  All rights reserved.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation, either
+ version 3 of the License, or (at your option) any later version.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ You should have received a copy of the GNU Lesser General Public
+ License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 // This #include statement was automatically added by the Particle IDE.
 #include <FastLED.h>
 #include "math.h"

@@ -10,6 +10,13 @@
  * **********************************************************************
  * 
  * @extended SparkPixels.ino:
+ * 		  > Fixed compiler issue with map function calls, forced to type cast
+ *          float calulcations to ints. 
+ * @author  Kevin Carlborg 
+ * @version V1.2
+ * @date    20181031
+ * 
+ * @extended SparkPixels.ino:
  * 		  > Updated the Shuffle mode so that it doesn't repeat a mode 
  *			without running through the whole list first. Think of a deck 
  *			of cards - shuffle the deck, then draw one card at a time till 
@@ -349,7 +356,7 @@ SYSTEM_THREAD(ENABLED);
 
 //Global Defines
 #define BUILD_FILE_NAME         "Spark Pixels Mega"
-#define BUILD_REVISION          "1.0.J"
+#define BUILD_REVISION          "1.2"
 #define ON                      1
 #define OFF                     0
 #define BPP                     3       //3 bytes per pixel or 24bit (RGB)
@@ -373,7 +380,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_CNT, PIXEL_PIN, PIXEL_TYPE);
  * Software timer interrupt to advance shuffle/demo mode every 2 minutes
  * 2 minutes = 2*60*1000
  */
-Timer demoTimer(2500, advanceDemo);    
+Timer demoTimer(2*60*1000, advanceDemo);    
 
 /* ======================= ADD NEW MODE ID HERE. ======================= */
 // Mode ID Defines
@@ -2151,9 +2158,9 @@ void runDemo() {
         pos += posInc;
         if (pos >= endOfMessage) {
             if(textMode <= 5) 
-                pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+                pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
             else
-                pos = map(strlen(message), 1, 63, -(SIDE*.98), 0);
+                pos = map(strlen(message), 1, 63, (int)-(SIDE*.98), 0);
             textMode++;
             if(textMode > 6) {
                 if(cycleCount == floor((sizeof(modeStruct) / sizeof(modeStruct[0]))*.25)-1)
@@ -2498,10 +2505,10 @@ void resetVariables(int modeIndex) {
             sprintf(clockMessage, "00:00:00XX");
             switch(whichTextMode) {
                 case 0:
-                    pos = map(strlen(clockMessage), 1, 63, -(SIDE*.5), 0);
+                    pos = map(strlen(clockMessage), 1, 63, (int)-(SIDE*.5), 0);
                     break;
                 case 1:
-                    pos = map(strlen(clockMessage), 1, 63, -(SIDE*.98), 0);
+                    pos = map(strlen(clockMessage), 1, 63, (int)-(SIDE*.98), 0);
                     break;
             }
 			whichTextMode = (whichTextMode+1)%2;
@@ -2520,10 +2527,10 @@ void resetVariables(int modeIndex) {
             switch(whichTextMode) {
                 case 0:
                 case 1:
-                    pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+                    pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
                     break;
                 case 2:
-                    pos = map(strlen(message), 1, 63, -(SIDE*.98), 0);
+                    pos = map(strlen(message), 1, 63,(int)-(SIDE*.98), 0);
                     break;
             }
             transitionAll(black,LINEAR);
@@ -2592,11 +2599,11 @@ void resetVariables(int modeIndex) {
             sprintf(message, textInputString);
             switch(whichTextMode) {
                 case 0:
-                    pos = map(strlen(message), 1, 63, -(SIDE*.98), 0);
+                    pos = map(strlen(message), 1, 63, (int)-(SIDE*.98), 0);
                     break;
                 case 1:
                 case 2:
-                    pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+                    pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
                     break;
             }
 			whichTextMode = (whichTextMode+1)%2;
@@ -2826,7 +2833,7 @@ void launchRain(int amplitude) {
             if(amplitude>maxVal)
                 maxVal=amplitude;
       	
-      	int numDrops=map(amplitude, 0, maxVal, 0, MAX_POINTS);
+      	int numDrops=map(amplitude, 0, (int)maxVal, 0, MAX_POINTS);
         for(int j=0;j<numDrops;j++) {
             salvos[i].dead=false;
           	salvos[i].raindrops[j].dead=false;
@@ -3206,7 +3213,7 @@ void textClock() {
             //Can't call textMarquee(col, 0) wrapper directly, due to conflicts with switches 2 and 3
             marquee(clockMessage, pos, bg);
             if (pos >= (SIDE*map(strlen(clockMessage), 1, 63, 4, SIDE))+(strlen(clockMessage))*8)
-                pos = map(strlen(clockMessage), 1, 63, -(SIDE*.5), 0);
+                pos = map(strlen(clockMessage), 1, 63, (int)-(SIDE*.5), 0);
             break;
         }
         case 1:
@@ -3214,7 +3221,7 @@ void textClock() {
             //Can't call textScroll(col, 0) wrapper directly, due to conflicts with switches 2 and 3
             scrollText(clockMessage, Point(pos - strlen(clockMessage), 0, 6), bg);
             if (pos >= (SIDE*map(strlen(clockMessage), 1, 63, 1, SIDE))+(strlen(clockMessage))*8)
-                pos = map(strlen(clockMessage), 1, 63, -(SIDE*.5), 0);
+                pos = map(strlen(clockMessage), 1, 63, (int)-(SIDE*.5), 0);
             break;
         }
     }    
@@ -3443,13 +3450,13 @@ void iftttWeather(uint32_t c) {
                     //Can't call textMarquee(col, 0) wrapper directly, due to conflicts with switches 2 and 3
                     marquee(message, pos, getColorFromInteger(c));
                     if (pos >= (SIDE*map(strlen(message), 1, 63, 4, SIDE))+(strlen(message))*8)
-                        pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+                        pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
                     break;
                 case 1:
                     //Can't call textScroll(col, 0) wrapper directly, due to conflicts with switches 2 and 3
                     scrollText(message, Point(pos - strlen(message), 0, 6), getColorFromInteger(c));
                     if (pos >= (SIDE*map(strlen(message), 1, 63, 1, SIDE))+(strlen(message))*8)
-                        pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+                        pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
                     break;
 
             }
@@ -5723,7 +5730,7 @@ void colorChaser(uint32_t c) {
     static bool bounce = false;
     Color c1, c2 = getColorFromInteger(c);
     uint32_t maxColorPixel = getHighestValFromRGB(c2);
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
 	run = TRUE;
 
     for(int i=0; i<=0xFF; i+=increment) {
@@ -6699,7 +6706,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4, bool loop) {
 	}
     
     maxColorPixel = getHighestValFromRGB(col1);
-    increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
     for(int j=0; j<=maxColorPixel; j+=increment) {
 		run = TRUE;
 		if(stop || stopDemo) {return 0;}
@@ -6714,7 +6721,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4, bool loop) {
         }
     }
     maxColorPixel = getHighestValFromRGB(col2);
-    increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
     for(int j=0; j<=maxColorPixel; j+=increment) {
         if(stop || stopDemo) {return 0;}
         if(run || (c != col2)) {
@@ -6728,7 +6735,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4, bool loop) {
         }
     }
     maxColorPixel = getHighestValFromRGB(col3);
-    increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
     for(int j=0; j<=maxColorPixel; j+=increment) {
         if(stop || stopDemo) {return 0;}
         if(run || (c != col3)) {
@@ -6742,7 +6749,7 @@ int colorZone(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4, bool loop) {
         }
     }
     maxColorPixel = getHighestValFromRGB(col4);
-    increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
     for(int j=0; j<=maxColorPixel; j+=increment) {
         if(stop || stopDemo) {return 0;}
         if(run || (c != col4)) {
@@ -6784,7 +6791,7 @@ void colorZoneChaser(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4) {
     Color col4 = getColorFromInteger(c4);
     Color colZ1, colZ2, colZ3, colZ4;
     uint32_t maxColorPixel = max(max(getHighestValFromRGB(col1), getHighestValFromRGB(col2)), max(getHighestValFromRGB(col3), getHighestValFromRGB(col4)));
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
 	run = TRUE;
     
     for(int i=0; i<=maxColorPixel; i+=increment) {
@@ -6887,7 +6894,7 @@ void flicker(uint32_t c) {
     int ibright = random(brightness*.25, brightness+1);  //(brightness*.25) + (rand() % brightness);
     int random_delay = random(1, map(speed, 1, 120, 100, 10)+1);  //1 + (rand() % map(speed, 1, 120, 100, 10));
     uint32_t maxColorPixel = floor(max(ibright, getHighestValFromRGB(c1)));
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
 	run = TRUE;
 
     for(int j=random((int)(maxColorPixel*.25), (int)(maxColorPixel*.5)+1); j<=maxColorPixel; j+=increment) {
@@ -6985,7 +6992,7 @@ void twoColorChaser(uint32_t color1, uint32_t color2) { //-COLOR CHASER (TWO COL
     Color col1, c1 = getColorFromInteger(color1);
     Color col2, c2 = getColorFromInteger(color2);
     uint32_t maxColorPixel = max(getHighestValFromRGB(c1), getHighestValFromRGB(c2));
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.25, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.25), 5);
 	run = TRUE;
     
     for(int i=0; i<=maxColorPixel; i+=increment) {
@@ -7668,7 +7675,7 @@ int hexToInt(char val) {
   @param col The Color to fade into.*/
 void fadeInToColor(uint32_t index, Color col) {
     uint32_t maxColorPixel = getHighestValFromRGB(col);
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.125, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.125), 5);
     Color col2;
     
     for(int i=0; i<=maxColorPixel; i+=increment) {
@@ -7686,7 +7693,7 @@ void fadeInToColor(uint32_t index, Color col) {
   @param col The Color to fade out from.*/
 void fadeOutFromColor(uint32_t index, Color col) {
     uint32_t maxColorPixel = getHighestValFromRGB(col);
-    uint32_t increment = map(speed, 1, 120, maxColorPixel*.125, 5);
+    uint32_t increment = map(speed, 1, 120, (int)(maxColorPixel*.125), 5);
     Color col2;
     
     if(maxColorPixel == 0) {return;}
@@ -8171,7 +8178,7 @@ void textScroll(uint32_t color1, uint32_t color2) {
     float speedFactor = .05 + ratio * ((map(speed, 1, 120, 120, 1) * .05) - .05);
     pos += speedFactor;
     if (pos >= (SIDE*map(strlen(message), 1, 63, 1, SIDE))+(strlen(message))*8)
-        pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+        pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
 }
 
 void textMarquee(uint32_t color1, uint32_t color2) {
@@ -8195,7 +8202,7 @@ void textMarquee(uint32_t color1, uint32_t color2) {
     float speedFactor = .05 + ratio * ((map(speed, 1, 120, 120, 1) * .05) - .05);
     pos += speedFactor;
     if (pos >= (SIDE*map(strlen(message), 1, 63, 4, SIDE))+(strlen(message))*8)
-        pos = map(strlen(message), 1, 63, -(SIDE*.5), 0);
+        pos = map(strlen(message), 1, 63, (int)-(SIDE*.5), 0);
 }
 
 

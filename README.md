@@ -28,8 +28,8 @@ Spark Pixels FastLED sketch. The FastLED library provides some awesome modes wit
 
 ## What firmware do I use?
 * For single strip or Neopixel rings, get the [firmware here](https://github.com/sparcules/Spark_Pixels/tree/master/Firmware).
-* For the [L3D Cube](http://lookingglassfactory.com/), get Werner's [firmware here](https://github.com/wmoecke/Spark_Pixels/blob/master/Firmware/SparkPixels.ino). Or flash through [Cubetube here](http://www.cubetube.org/gallery/newestFirst/1438/).
-* Have a 2D Neopixel Matrix and want scrolling text? Sorry, this sketch hasn't been developed yet. But you can comb through Werner's sketch for the L3D Cube to get example code for scrolling text.
+* For the [L3D Cube](https://lookingglassfactory.com/product/l3d-cube/), get the [firmware here](https://github.com/sparcules/Spark_Pixels/tree/master/Firmware/Neopixel_Library/SparkPixels_L3D_Cube). Or flash Spark Pixels Mega through [Cubetube here](http://www.cubetube.org/gallery/byCreator/sparcules/).
+* Have a 2D Neopixel Matrix and want scrolling text? Sorry, this sketch hasn't been developed yet. But you can comb through the L3D Cube sketch to get example code for scrolling text.
 * See [Flashing the Firmware](https://github.com/sparcules/Spark_Pixels#flashing-the-firmware) below for instructions on how to flash through Particle's web IDE.
 
 

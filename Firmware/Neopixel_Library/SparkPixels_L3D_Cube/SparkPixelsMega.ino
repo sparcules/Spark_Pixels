@@ -10,6 +10,15 @@
  * **********************************************************************
  * 
  * @extended SparkPixels.ino:
+ * 	     > Commented out modes: Life, Hyper, Roman, and Listener in order to fix
+ *  		a panic failure mode. SOS fail code wasn't very obvious of the failure.
+ *		Suspect that we were running out of memory since we are already near the 
+ *		limit.
+ * @author  Kevin Carlborg 
+ * @version V1.3
+ * @date    20190327
+ *
+ * @extended SparkPixels.ino:
  * 		  > Fixed compiler issue with map function calls, forced to type cast
  *          float calulcations to ints. 
  * @author  Kevin Carlborg 
@@ -356,7 +365,7 @@ SYSTEM_THREAD(ENABLED);
 
 //Global Defines
 #define BUILD_FILE_NAME         "Spark Pixels Mega"
-#define BUILD_REVISION          "1.2"
+#define BUILD_REVISION          "1.3"
 #define ON                      1
 #define OFF                     0
 #define BPP                     3       //3 bytes per pixel or 24bit (RGB)
@@ -441,12 +450,12 @@ Timer demoTimer(2*60*1000, advanceDemo);
 #define FIREWORKS		  		     55 //credit: http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions) 
 #define PUCKDUDE				     56 //credit: batman modded by socaljj
 #define CRUMBLE					     57 //credit: ? modded by socaljj
-#define ROMAN						 58 //credit: alex ? modded by socaljj
-#define LIFE                         59 //credit: Ben? grajohnt? modded by socaljj
+//#define ROMAN						 58 //credit: alex ? modded by socaljj
+//#define LIFE                         59 //credit: Ben? grajohnt? modded by socaljj
 #define SNAKE						 60 //credit: perkbrian modded by socaljj
 #define CLASSICPLANES				 61 //credit: smf modded by socaljj
 #define DSPIRAL					     62 //credit: sputty01 modded by socaljj
-#define HYPER						 63 //credit: fool, modded by socaljj
+//#define HYPER						 63 //credit: fool, modded by socaljj
 #define MATRIX					     64 //credit: odity,  modded by socaljj
 #define CUBEBOUNCE				     65 //credit: Ben, modded by socaljj
 #define RAND_PATH_AROUND			 66 //credit: http://www.theledcube.com/source-code/, Kevin Carlborg (L3D Cube port)
@@ -598,14 +607,14 @@ static modeParams modeStruct[] =
         {  FLICKER,                     "Flicker",              1,          0,      FALSE   },  //credit: Werner Moecke
 		{  FOLDER,                      "Folder",               0,          0,      FALSE   },  //credit: Kevin Carlborg
         {  FROZEN,                      "Frozen",               0,          0,      FALSE   },  //credit: Kevin Carlborg, Werner Moecke (flake fading)
-		{  LIFE,                        "GameOfLife",           0,          0,      FALSE   },  //credit: Ben? grajohnt? modded by socaljj
+//		{  LIFE,                        "GameOfLife",           0,          0,      FALSE   },  //credit: Ben? grajohnt? modded by socaljj
 		{  GOLDRAIN,                    "GoldRain",             0,          1,      FALSE   },  //credit: Werner Moecke (based on Alex Hornstein's "Purple Rain")
-		{  HYPER,                       "HyperBall",            0,          0,      FALSE   },  //credit: fool, mod by socaljj
+//		{  HYPER,                       "HyperBall",            0,          0,      FALSE   },  //credit: fool, mod by socaljj
         {  IFTTTWEATHER,                "IFTTT",                0,          0,      FALSE   },  //credit: Kevin Carlborg, Werner Moecke (code improvements)
         {  LIGHTNING,                   "Lightning",            0,          0,      FALSE   },  //credit: Bill Marrs
 		{  LINESPIN,                    "LineSpin",    	        0,          0,      FALSE   },  //credit :http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
 		{  DSPIRAL,                     "LineSpiral",           0,          0,      FALSE   },  //credit: sputty01 modded by socaljj     
-        {  LISTENER,                    "Listener",             0,          0,      FALSE   },  //credit: Werner Moecke
+//        {  LISTENER,                    "Listener",             0,          0,      FALSE   },  //credit: Werner Moecke
 		{  MATRIX,                      "Matrix",               0,          0,      FALSE   },  //credit odity,  modded by socaljj
 		{  SPHEREMOVE,                  "MovingSphere",   	    0,          0,      FALSE   },  //credit :http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
 		{  PUCKDUDE,                    "PacMan",               0,          0,      FALSE   },  //credit batman,  modded by socaljj
@@ -618,7 +627,7 @@ static modeParams modeStruct[] =
         {  RAIN,                        "Rain",                 1,          4,      FALSE   },  //credit: Kevin Carlborg, Werner Moecke (Matrix Mode)
         {  RAINBOW,                     "Rainbow",              0,          0,      FALSE   },  //credit: Kevin Carlborg
 		{  RAND_PATH_AROUND,            "RandomPath",           0,          0,      FALSE   },  //credit: http://www.theledcube.com/source-code/, Kevin Carlborg (L3D Cube port)
-		{  ROMAN,                       "RomanCandle",          0,          1,      FALSE   },  //credit: alex ?  mod by socaljj
+//		{  ROMAN,                       "RomanCandle",          0,          1,      FALSE   },  //credit: alex ?  mod by socaljj
 		{  SINELINES,                   "SineLines",  		    0,          0,      FALSE   },  //credit :http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
 		{  SINEWAVE,                    "SineWave",    	        0,          0,      FALSE   },  //credit :http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
 		{  CLASSICPLANES,               "SlidingPlanes",        0,          0,      FALSE   },  //credit: smf mod by socaljj
@@ -655,7 +664,7 @@ switchParams switchTitleStruct[] =
 	   {  CUBE_CLASSICS, "Sweep BG",            "",                    "",                    ""                     },
 	   {  COLORBREATHE,  "Sweep BG",            "",                    "",                    ""                     },
 	   {  CLOCK,         "3D Clock",            "24h/12h",             "Sweep BG",            "No BG"                },
-	   {  ROMAN,         "Sound Reactive",      "",                    "",                    ""                     },
+//	   {  ROMAN,         "Sound Reactive",      "",                    "",                    ""                     },
 	   {  ACIDRAIN,      "Sound Reactive",      "",                    "",                    ""                     },
 	   {  GOLDRAIN,      "Sound Reactive",      "",                    "",                    ""                     },
 };
@@ -837,6 +846,11 @@ void textMarquee(uint32_t color1, uint32_t color2);
 void showChar(char a, Point origin, Point angle, Color col);
 void scrollText(String text, Point initialPosition, Color col);
 void showChar(char a, Point origin, Point pivot, Point angle, Color col);
+
+/*static const unsigned char PROGMEM fontTable[]  =
+{
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00	// Char 000 (.)
+};*/
 
 static const unsigned char PROGMEM fontTable[2048]  =
 {
@@ -1236,7 +1250,7 @@ void dSpiral_setup(void);
 
 
 /* =========================== Hyper Cube mode defines ========================= */
-#define		HCdiameter  3.5
+/*#define		HCdiameter  3.5
 #define		TWO_PI     	2.0*PI
 #define		TWO_OVER_PI	2.0/PI
 #define		HALF_PI		PI/2.0
@@ -1253,6 +1267,7 @@ float HCsin_32(float x);
 float HCdistance(float x, float y, float z, float x1, float y1, float z1);
 float HCfmap(float input, float inMin, float inMax, float outMin, float outMax);
 float HCtoFloat(int x);
+*/
 
 /* =========================== Matrix mode defines ========================== */
 #define VOX_POINTS 64
@@ -1365,7 +1380,7 @@ std::string padTo(std::string str, const size_t num, const char paddingChar);
 
 
 /* ====================== Roman Candle mode Definitions =================== */
-#define NUM_ROCKETS 50
+/*#define NUM_ROCKETS 50
 float RCmaxVal=0;
 float sample;
 float offset=0;
@@ -1381,16 +1396,16 @@ Rocket rockets[NUM_ROCKETS];
 void romanCandle();
 void mirror();
 void initRockets();
-
+*/
 
 
 /* ====================== 3D Life mode Definitions =================== */
-#define MAX_ITERATIONS 100
+/*#define MAX_ITERATIONS 100
 int iterationCount = 0;
 void lifeResetCube();
 void life();
 int countNeighbors(int x, int y, int z);
-
+*/
 
 /* ====================== CRUMBLE mode Definitions =================== */
 bool Cmirror = true; 
@@ -1673,7 +1688,7 @@ void setup() {
 	//snowFlakeColor = getColorFromInteger(0xFFFFFF);
     //c1 = Wheel(random(256));
     //c2 = Wheel(random(256));
-    
+    Serial.begin(9600);
 	//Start up the Neopixels
 	strip.begin();
     
@@ -1946,7 +1961,9 @@ void loop() {
 
     unsigned long currentMillis = millis();
  
-    if(currentMillis - previousMillis > oneMinuteInterval) {
+    if(currentMillis - previousMillis > 5000) {
+    //if(currentMillis - previousMillis > oneMinuteInterval) {
+        Serial.printf("Info=%s\n",deviceInfo);
         previousMillis = currentMillis;
         hour = Time.hour();    //used to check for correct time zone
         wifi = WiFi.RSSI();
@@ -2360,16 +2377,16 @@ void runMode() {
 		case FROZEN:
 		    frozen();
 		    break;
-		case HYPER:
+/*		case HYPER:
 			hyper(); 
-	        break;
+	        break;*/
 		case IFTTTWEATHER:
 		    iftttWeather(color6);
     	    break;
-		case LIFE:
+/*		case LIFE:
 		    transitionAll(black,LINEAR);
 			life();
-	        break;	
+	        break;	*/
 		case LIGHTNING:
 			if(millis() - lastLightning >= lightningInterval) {
 				lastLightning = millis();
@@ -2383,9 +2400,9 @@ void runMode() {
 			else
 				transitionAll(black,LINEAR);
 		    break;
-		case LISTENER:
+	/*	case LISTENER:
 		    listen();
-		    break;
+		    break;*/
 		case MATRIX:
 			matrix(); 
 	        break;
@@ -2407,10 +2424,10 @@ void runMode() {
 		case RAINBOW_BURST:
 		    random_burst();
 		    break;
-		case ROMAN:
+/*		case ROMAN:
 		    transitionAll(black,LINEAR);
 			romanCandle(); 
-	        break;	
+	        break;	*/
 		case SHUFFLE:
 			break;
 		case SLIDESHOW:
@@ -2576,10 +2593,10 @@ void resetVariables(int modeIndex) {
 			isFirstLap = TRUE;
 			transitionAll(black,LINEAR);	//fadeToBlack();
 			break;
-		case LIFE:
+/*		case LIFE:
             transitionAll(black,LINEAR);
 			lifeResetCube();			
-		    break;
+		    break;*/
 		case PLASMA:
             phase = 0.0;
             colorStretch = 0.23;    // Higher numbers will produce tighter color bands 
@@ -2590,10 +2607,10 @@ void resetVariables(int modeIndex) {
             idex = 0;
             ihue = 0;
 			break;
-		case ROMAN:
+/*		case ROMAN:
             transitionAll(black,LINEAR);
 			initRockets();			
-		    break;
+		    break;*/
 		case TEXT:
 		{
             sprintf(message, textInputString);
@@ -8807,7 +8824,7 @@ void rotate_x(Point& a, int b) {
 
 
 /* ========================= Roman Candle mode routines ======================== */
-void romanCandle() {
+/*void romanCandle() {
 	background(black);
 	
 	// ARRAY_SIZE = pow(2,M), where M=4
@@ -8902,11 +8919,11 @@ void initRockets() {
         rockets[i].yVel=0.25;//random(10)/10;
         rockets[i].zVel=0.25;//(random(10)/10)-0.5;
      }
-}
+}*/
 
 
 /* ========================== 3D life mode routines =========================== */
-void life() {  
+/*void life() {  
   int changeCount = 0;
   int neighbourCount = 0;
   bool aliveNow;
@@ -8999,7 +9016,7 @@ int countNeighbors(int x, int y, int z) {
     }
   }
   return count;
-}
+}*/
 
 
 /* ========================== Crumble mode routines =========================== */
@@ -9407,7 +9424,7 @@ void dSpiral() {
 }
 
 /* ======================== HYPER Cube mode routines ======================== */
-void hyper() {
+/*void hyper() {
 	background(black);		
    
 	HCphase += PI/12.0; 
@@ -9464,7 +9481,7 @@ float HCcos_32s(float x) {
 
 	//HCx2=pow(x, 2);
 	return (HCc1 + HCx2*(HCc2 + HCc3 * HCx2));
-}
+}*/
 
 /**
  *  This is the main cosine approximation "driver"
@@ -9472,6 +9489,7 @@ float HCcos_32s(float x) {
  * and then calls the approximator. 
  * See the notes for an explanation of the range reduction.
 **/
+/*
 float HCcos_32(float x) {
 	int quad;						// what quadrant are we in?	
 
@@ -9486,12 +9504,13 @@ float HCcos_32(float x) {
 		case 2: return -HCcos_32s(x-PI);
 		case 3: return  HCcos_32s(TWO_PI-x);
 	}
-}
+}*/
 
 /**
  *  The sine is just cosine shifted a half-pi, so
  * we'll adjust the argument and call the cosine approximation.
 **/
+/*
 float HCsin_32(float x){
 	return HCcos_32(HALF_PI - x);
 }
@@ -9508,7 +9527,7 @@ float HCfmap(float input, float inMin, float inMax, float outMin, float outMax) 
 
 float HCtoFloat(int x) {
   return float(x);
-}
+}*/
 
 /* ======================== MATRIX mode routines ============================== */
 void matrix_setup() {

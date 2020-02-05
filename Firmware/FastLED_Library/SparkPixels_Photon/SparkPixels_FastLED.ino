@@ -37,10 +37,10 @@ FASTLED_USING_NAMESPACE;
 
 //Global Defines
 #define BUILD_FILE_NAME             "FastLED Pixels"
-#define BUILD_REVISION              "0.1"
+#define BUILD_REVISION              "0.2"
 #define GET_TEMP_ENABLED            FALSE   //Should we measure a temp sensor?
 #define TIME_ZONE_OFFSET	        -5		//The offset to set your region's time correctly  -6
-#define DEFAULT_BRIGHTNESS			250		//Set how bright you want your pixels on startup
+#define DEFAULT_BRIGHTNESS			100		//Set how bright you want your pixels on startup
 
 //NEOPIXEL Defines
 #define NUM_LEDS   	512

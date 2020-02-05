@@ -37,8 +37,8 @@ FASTLED_USING_NAMESPACE;
 #define DEFAULT_BRIGHTNESS			250		//Set how bright you want your pixels on startup
 
 //NEOPIXEL Defines
-#define NUM_LEDS   	268
-#define PIXEL_PIN  	D7
+#define NUM_LEDS   	512
+#define PIXEL_PIN  	D0
 #define PIXEL_TYPE 	NEOPIXEL  //WS2812B
 CRGB leds[NUM_LEDS];
 
@@ -447,7 +447,7 @@ void setup() {
     transitionAll(defaultColor,POLAR);
 	setNewMode(getModeIndexFromID(NORMAL));
 	
-    Particle.connect();     //Now connect to the cloud
+    //Particle.connect();     //Now connect to the cloud
     Time.zone(timeZone);  	//set time zone 
     
     //Clear the cloud list variables

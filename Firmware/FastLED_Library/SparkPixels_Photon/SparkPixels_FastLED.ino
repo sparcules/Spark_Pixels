@@ -404,7 +404,7 @@ void wipe(CRGB c);
 
 
 //Don't connect to the cloud first so we can turn on the lights right away
-SYSTEM_MODE(SEMI_AUTOMATIC);   
+//SYSTEM_MODE(SEMI_AUTOMATIC);   
 
 void setup() {
     //Declare Cloud Functions - Up to 15

@@ -1,4 +1,10 @@
-/* @file     SparkPixels_FastLED.ino
+/*@file     SparkPixels_FastLED.ino
+ * @authors  Kevin Carlborg
+ * @version  V0.2
+ * @date     05-February-2020
+ * @brief    Commented out SYSTEM_MODE(SEMI_AUTOMATIC) and Particle.connect()
+ *           Defaulted PIXEL_PIN to D0 and NUM_LEDS to 512
+ *
  * @authors  Kevin Carlborg
  * @version  V0.1
  * @date     06-September-2017

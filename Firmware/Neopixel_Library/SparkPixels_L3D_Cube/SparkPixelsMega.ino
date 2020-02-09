@@ -10,6 +10,13 @@
  * **********************************************************************
  * 
  * @extended SparkPixels.ino:
+ * 	     > Converted some globals to const(s) which reduced RAM usage from
+ *             75kB down to 69kB
+ * @author  Kevin Carlborg 
+ * @version V1.4
+ * @date    20200209
+ * 
+ * @extended SparkPixels.ino:
  * 	     > Commented out modes: Life, Hyper, Roman, and Listener in order to fix
  *  		a panic failure mode. SOS fail code wasn't very obvious of the failure.
  *		Suspect that we were running out of memory since we are already near the 
@@ -349,7 +356,7 @@
  You should have received a copy of the GNU Lesser General Public
  License along with this program; if not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-SYSTEM_THREAD(ENABLED);
+//SYSTEM_THREAD(ENABLED);
 
 #include "neopixel/neopixel.h"
 #include <avr/pgmspace.h>
@@ -365,7 +372,7 @@ SYSTEM_THREAD(ENABLED);
 
 //Global Defines
 #define BUILD_FILE_NAME         "Spark Pixels Mega"
-#define BUILD_REVISION          "1.3"
+#define BUILD_REVISION          "1.4"
 #define ON                      1
 #define OFF                     0
 #define BPP                     3       //3 bytes per pixel or 24bit (RGB)
@@ -377,6 +384,7 @@ SYSTEM_THREAD(ENABLED);
 #define PI  3.1415926535
 #endif
 
+//SYSTEM_MODE(AUTOMATIC); 
 
 /*  Particle Cloud Constraint Defines  */
 #define MAX_PUBLISHED_STRING_SIZE	622	//Max character length for a Cloud String Variable
@@ -579,15 +587,15 @@ static modeParams modeStruct[] =
     /*     modeId                       modeName                #Colors     #Switches   textInput
      *     --------------- 	            ---------------	        ---------   ---------   --------- */
         {  STANDBY,                     "Off",                  0,          0,      FALSE   },  //credit: Kevin Carlborg
-        {  NORMAL,                      "Light",                0,          0,      FALSE   },  //credit: Kevin Carlborg
+//        {  NORMAL,                      "Light",                0,          0,      FALSE   },  //credit: Kevin Carlborg
 		{  SHUFFLE,                     "Shuffle",              0,          0,      FALSE   },  //credit: Kevin Carlborg
         {  ACIDDREAM,                   "AcidDream",            0,          0,      FALSE   },  //credit: Werner Moecke
-        {  ACIDRAIN,                    "AcidRain",             0,          1,      FALSE   },  //credit: Werner Moecke (inspired by Kevin Darrah's "Rain" and based on Alex Hornstein's "Purple Rain")
+//        {  ACIDRAIN,                    "AcidRain",             0,          1,      FALSE   },  //credit: Werner Moecke (inspired by Kevin Darrah's "Rain" and based on Alex Hornstein's "Purple Rain")
         {  COLORBREATHE,                "Breathe",              1,          1,      FALSE   },  //credit: Werner Moecke		
 		{  CUBEBOUNCE,                  "BouncyCube",           0,          0,      FALSE   },  //credit: Ben mod by socaljj		
-        //{  RAINBOW_BURST,               "Burst",                0,          0,      FALSE   },  //credit: Werner Moecke
+        {  RAINBOW_BURST,               "Burst",                0,          0,      FALSE   },  //credit: Werner Moecke
 		{  BUILDAWALL,                  "BuildAWall",    	    0,          0,      FALSE   },  //credit ttp://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
-        //{  CHASER,                      "Chaser",               1,          0,      FALSE   },  //credit: Kevin Carlborg
+        {  CHASER,                      "Chaser",               1,          0,      FALSE   },  //credit: Kevin Carlborg
   		{  CHEERLIGHTS,                 "CheerLights",          0,          0,      FALSE   },  //credit: Alex Hornstein, Werner Moecke (stability fixes, extra transition effects)
         {  CHRISTMASLIGHTS,             "ChristmasLights",      0,          0,      FALSE   },  //credit: Kevin Carlborg, Werner Moecke (L3D Cube port)
         {  CHRISTMASTREE,               "ChristmasTree",        0,          3,      FALSE   },  //credit: Kevin's friggin' xmas tree - there, have it!
@@ -611,7 +619,7 @@ static modeParams modeStruct[] =
 		{  GOLDRAIN,                    "GoldRain",             0,          1,      FALSE   },  //credit: Werner Moecke (based on Alex Hornstein's "Purple Rain")
 //		{  HYPER,                       "HyperBall",            0,          0,      FALSE   },  //credit: fool, mod by socaljj
         {  IFTTTWEATHER,                "IFTTT",                0,          0,      FALSE   },  //credit: Kevin Carlborg, Werner Moecke (code improvements)
-        {  LIGHTNING,                   "Lightning",            0,          0,      FALSE   },  //credit: Bill Marrs
+//        {  LIGHTNING,                   "Lightning",            0,          0,      FALSE   },  //credit: Bill Marrs
 		{  LINESPIN,                    "LineSpin",    	        0,          0,      FALSE   },  //credit :http://www.instructables.com/id/Led-Cube-8x8x8/, Kevin Carlborg (L3D Cube port), Werner Moecke (smooth transitions)
 		{  DSPIRAL,                     "LineSpiral",           0,          0,      FALSE   },  //credit: sputty01 modded by socaljj     
 //        {  LISTENER,                    "Listener",             0,          0,      FALSE   },  //credit: Werner Moecke
@@ -703,7 +711,7 @@ bool rememberLastMode;   //Should we remember the last mode ran? This is toggled
 const int speedPresets[] = {120, 100, 80, 70, 50, 30, 20, 10, 1};  //in mSec, slow to fast       
 
 //Time Interval constants            hh*mm*ss*ms    
-unsigned long oneMinuteInterval =     1*60*1000;	//Read temp every minute
+const unsigned long oneMinuteInterval =     1*60*1000;	//Read temp every minute
 //unsigned long twoMinuteInterval =     2*60*1000;	//Change mode every 2 minutes in demo - Now using a Timer
 //unsigned long oneHourInterval =       1*60*60*1000; //auto off in 1 hr when night time
 //unsigned long oneDayInterval = 	     24*60*60*1000; //time sync interval - 24 hours
@@ -766,14 +774,14 @@ int micValue = 0;
 //int ChaserZone3Section1End   = 177;
 //int chaserZone3Section2Start = 189;
 //#define CHASER_LENGTH			PIXEL_CNT
-uint16_t zone1Start = 0;
-uint16_t zone1End   = (PIXEL_CNT / 4) - 1;   //127
-uint16_t zone2Start = zone1End + 1;          //128
-uint16_t zone2End   = (zone2Start * 2) - 1;  //255
-uint16_t zone3Start = PIXEL_CNT / 2;         //256
-uint16_t zone3End   = zone3Start + zone1End; //383
-uint16_t zone4Start = zone3End + 1;          //384
-uint16_t zone4End   = PIXEL_CNT - 1;		//511
+const uint16_t zone1Start = 0;
+const uint16_t zone1End   = (PIXEL_CNT / 4) - 1;   //127
+const uint16_t zone2Start = zone1End + 1;          //128
+const uint16_t zone2End   = (zone2Start * 2) - 1;  //255
+const uint16_t zone3Start = PIXEL_CNT / 2;         //256
+const uint16_t zone3End   = zone3Start + zone1End; //383
+const uint16_t zone4Start = zone3End + 1;          //384
+const uint16_t zone4End   = PIXEL_CNT - 1;		//511
 
 
 /* ========================= FROZEN mode Definitions ========================= */
@@ -1427,7 +1435,7 @@ void resetCycle();
 #define AXIS_Z	0x7a
 uint8_t colorWheel;
 
-const unsigned char paths[44] PROGMEM = {0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x71,
+const unsigned char PROGMEM paths[44] = {0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x71,
 										 0x72,0x73,0x74,0x75,0x76,0x77,0x67,0x57,0x47,0x37,0x27,0x17,0x04,0x03,0x12,0x21,
 										 0x30,0x40,0x51,0x62,0x73,0x74,0x65,0x56,0x47,0x37,0x26,0x15}; // circle, len 16, offset 28
 
@@ -1538,7 +1546,7 @@ float setNewSpeed(void);
 /* ========================== SLIDESHOW Definitions ===================== */
 #define TRAIL_LENGTH	50
 Color trailColor;
-unsigned char PROGMEM table_3p[][8]= { //3p char
+const  unsigned char PROGMEM table_3p[][8]= { //3p char
 	0x20,0x40,0x20,0xFC,0xFA,0xFA,0xFC,0xF8,	//Cup of Coffee
 	0x7E,0x81,0xA5,0x81,0xA5,0x99,0x81,0x7E,	//Smiley
 	0x44,0x7C,0x54,0x7C,0x38,0x10,0x54,0x38,	//Flower Face

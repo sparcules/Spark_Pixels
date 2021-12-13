@@ -569,7 +569,6 @@ char* getWeekDay(void) {
         case 6: return "Fri";
         case 7: return "Sat";
     }
-    
     return "Not Found";
 }
 
@@ -590,6 +589,7 @@ char* getMonth(void) {
         case 11: return "Nov";
         case 12: return "Dec";
     }
+    return "Not Found";
 }
 
 void makeModeList(void) {
